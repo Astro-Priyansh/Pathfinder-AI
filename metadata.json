@@ -1,0 +1,5 @@
+{
+  "name": "Pathfinder AI",
+  "description": "A comprehensive AI-powered career counseling system featuring personality assessment, skill gap analysis, interest-based recommendations, and dynamic career roadmaps using Google Gemini.",
+  "requestFramePermissions": []
+}
