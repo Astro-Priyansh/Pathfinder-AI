@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { User, LogIn, LogOut, Settings, Trash2, Camera, Upload, Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
@@ -306,8 +305,8 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
                 {view === 'menu' ? (
                     <>
                         <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
-                            <p className="font-bold text-gray-900 dark:text-white truncate text-lg">{currentUser.username}</p>
-                            {currentUser.email && <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{currentUser.email}</p>}
+                            <p className="font-bold text-gray-900 dark:text-white truncate text-lg" title={currentUser.username}>{currentUser.username}</p>
+                            {currentUser.email && <p className="text-xs text-gray-500 dark:text-gray-400 truncate" title={currentUser.email}>{currentUser.email}</p>}
                             <p className="text-[10px] uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400 mt-2">Member since {new Date(currentUser.joinDate).toLocaleDateString()}</p>
                         </div>
                         <div className="p-2 space-y-1">

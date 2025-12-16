@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { College, CollegeResult } from '../types';
 import { findColleges } from '../services/gemini';
@@ -64,7 +63,7 @@ const CollegeCard: React.FC<CollegeCardProps> = ({ college, isExpanded, onToggle
                         </span>
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white font-brand group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{college.name}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-1 font-medium">{college.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-1 font-medium" title={college.description}>{college.description}</p>
                 </div>
                 <div className="flex items-center gap-3">
                         <button
@@ -372,7 +371,8 @@ export const CollegeFinder: React.FC<CollegeFinderProps> = ({ onComplete, existi
           college.name.toLowerCase().includes(q) ||
           college.fees.toLowerCase().includes(q) ||
           college.description.toLowerCase().includes(q);
-        if (!match) return false;
+        if (match) return true;
+        return false;
       }
 
       return true;

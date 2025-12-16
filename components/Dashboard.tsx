@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UserState, AppView } from '../types';
 import { ArrowRight, CheckCircle, Brain, Target, AlertCircle, User, Compass, FileText, Star, Briefcase, Zap, Activity, Clock, Coffee, Map, TrendingUp, GraduationCap, Sparkles } from 'lucide-react';
@@ -27,7 +26,7 @@ const StatusCard: React.FC<StatusCardProps> = ({ title, completed, icon: Icon, d
       )}
     </div>
     <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1">{title}</h3>
-    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 h-10 line-clamp-2">{description}</p>
+    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 h-10 line-clamp-2" title={description}>{description}</p>
     <button 
       onClick={onClick}
       className="w-full py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center justify-center group"
@@ -230,7 +229,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                 
                 <div className="mb-4">
                     <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">{dominantTrait.trait} Personality</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed" title={dominantTrait.description}>
                         {dominantTrait.description}
                     </p>
                 </div>
@@ -284,7 +283,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                             {userState.habitRoutine?.habits.slice(0, 3).map((h, i) => (
                                 <div key={i} className="flex items-center text-xs text-gray-700 dark:text-gray-300">
                                     <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-2"></div>
-                                    <span className="truncate">{h.name}</span>
+                                    <span className="truncate" title={h.name}>{h.name}</span>
                                 </div>
                             ))}
                             </div>
@@ -298,7 +297,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                                 {userState.habitRoutine?.schedule.slice(0, 3).map((item, i) => (
                                     <div key={i} className="flex justify-between items-center text-xs">
                                         <span className="font-mono text-gray-500 dark:text-gray-500">{item.time}</span>
-                                        <span className="text-gray-700 dark:text-gray-300 font-medium truncate ml-2">{item.activity}</span>
+                                        <span className="text-gray-700 dark:text-gray-300 font-medium truncate ml-2" title={item.activity}>{item.activity}</span>
                                     </div>
                                 ))}
                             </div>
@@ -413,22 +412,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                       <div className="p-5 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-900/30 text-green-900 dark:text-green-200">
                           <div className="flex items-center mb-2">
                              <CheckCircle className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-                             <span className="font-bold uppercase text-xs tracking-wider text-green-600 dark:text-green-400">Next Actionable Step</span>
+                             <span className="font-bold">Current Focus: {nextStep.title}</span>
                           </div>
-                          <h3 className="font-bold text-lg mb-1">{nextStep.title}</h3>
-                          <p className="text-sm opacity-90 leading-relaxed mb-3">{nextStep.description}</p>
-                          {nextStep.resources && nextStep.resources.length > 0 && (
-                             <div className="text-xs font-medium text-green-700 dark:text-green-300">
-                                Resource: {nextStep.resources[0]}
-                             </div>
-                          )}
+                          <p className="text-sm opacity-90 mb-3">{nextStep.description}</p>
+                          <button 
+                            onClick={() => onChangeView(AppView.ROADMAP)}
+                            className="text-xs font-bold uppercase tracking-wider underline hover:text-green-700 dark:hover:text-green-300"
+                          >
+                              Open Roadmap
+                          </button>
                       </div>
-                  ) : hasSkills && userState.roadmap && (
-                    <div className="p-4 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-900/30 text-green-800 dark:text-green-300 flex items-center">
-                        <CheckCircle className="w-5 h-5 mr-3 text-green-600 dark:text-green-400" />
-                        You're making great progress! Continue refining your skills.
-                    </div>
-                  )}
+                  ) : null}
               </div>
           </div>
       )}

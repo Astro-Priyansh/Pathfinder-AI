@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { DailyRoutine, ExercisePlan, DietPlan, MealItem } from '../types';
 import { getDailyRoutine, getExercisePlan, getDietPlan } from '../services/gemini';
@@ -729,7 +728,7 @@ export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({ onCompleteRoutine,
                                 <div className="min-w-0">
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1.5">
                                         <span className="text-rose-600 dark:text-rose-400">Protein</span>
-                                        <span className="text-gray-900 dark:text-white truncate ml-2">{dietPlan.macros.protein}</span>
+                                        <span className="text-gray-900 dark:text-white truncate ml-2" title={dietPlan.macros.protein}>{dietPlan.macros.protein}</span>
                                     </div>
                                     <div className="w-full bg-white dark:bg-gray-700 h-2.5 rounded-full overflow-hidden shadow-sm">
                                         <div className="bg-rose-500 h-full rounded-full w-2/5"></div>
@@ -739,7 +738,7 @@ export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({ onCompleteRoutine,
                                 <div className="min-w-0">
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1.5">
                                         <span className="text-amber-600 dark:text-amber-400">Carbs</span>
-                                        <span className="text-gray-900 dark:text-white truncate ml-2">{dietPlan.macros.carbs}</span>
+                                        <span className="text-gray-900 dark:text-white truncate ml-2" title={dietPlan.macros.carbs}>{dietPlan.macros.carbs}</span>
                                     </div>
                                     <div className="w-full bg-white dark:bg-gray-700 h-2.5 rounded-full overflow-hidden shadow-sm">
                                         <div className="bg-amber-500 h-full rounded-full w-1/3"></div>
@@ -749,7 +748,7 @@ export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({ onCompleteRoutine,
                                 <div className="min-w-0">
                                     <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1.5">
                                         <span className="text-blue-600 dark:text-blue-400">Fats</span>
-                                        <span className="text-gray-900 dark:text-white truncate ml-2">{dietPlan.macros.fats}</span>
+                                        <span className="text-gray-900 dark:text-white truncate ml-2" title={dietPlan.macros.fats}>{dietPlan.macros.fats}</span>
                                     </div>
                                     <div className="w-full bg-white dark:bg-gray-700 h-2.5 rounded-full overflow-hidden shadow-sm">
                                         <div className="bg-blue-500 h-full rounded-full w-1/4"></div>
