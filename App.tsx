@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
@@ -13,6 +12,7 @@ import { CollegeFinder } from './components/CollegeFinder';
 import { SalaryPredictor } from './components/SalaryPredictor';
 import { AuthWidget } from './components/AuthWidget';
 import { Chatbot } from './components/Chatbot';
+import { SplashScreen } from './components/SplashScreen';
 import { AppView, UserState, PersonalityResult, InterestAnalysis, CareerRoadmap, SkillGapAnalysis, ResumeData, CareerRecommendation, SkillProficiency, DailyRoutine, UserProfile, CollegeResult, SalaryInsights, ExercisePlan, DietPlan } from './types';
 import { Menu, X, Globe, ChevronDown } from 'lucide-react';
 
@@ -27,6 +27,7 @@ const App: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
   
   // Application State
   const [userState, setUserState] = useState<UserState>({
@@ -242,87 +243,91 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-screen font-sans text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200`}>
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50 flex items-center justify-between p-4 transition-colors">
-        <span className="font-bold text-lg text-indigo-600 dark:text-indigo-400 font-brand">Pathfinder AI</span>
-        <div className="flex items-center gap-3">
-           <AuthWidget 
-                currentUser={currentUser}
-                onLogin={handleLogin}
-                onLogout={handleLogout}
-                onDeleteAccount={handleDeleteAccount}
-                onUpdateProfile={handleUpdateProfile}
-            />
-           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-700 dark:text-gray-200 p-1">
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Sidebar Backdrop */}
-      {mobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar Container */}
-      <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
-        ${mobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
-      `}>
-         <Sidebar 
-            currentView={currentView} 
-            onChangeView={(view) => { setCurrentView(view); setMobileMenuOpen(false); }} 
-            isDark={isDark}
-            toggleTheme={toggleTheme}
-         />
-      </div>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden w-full pt-16 md:pt-0 relative">
-          <div className="hidden md:flex justify-end items-center p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm sticky top-0 z-30 border-b border-gray-100 dark:border-gray-800 gap-6">
-              
-              {/* Refined Region Selector */}
-              <div className="relative group">
-                  <div className="flex items-center text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 py-2 px-3 rounded-xl transition cursor-pointer">
-                      <Globe className="w-4 h-4 mr-2" />
-                      <span className="text-sm font-medium mr-2 text-gray-700 dark:text-gray-200">{userState.country}</span>
-                      <ChevronDown className="w-3 h-3 opacity-50" />
-                  </div>
-                  <select 
-                    value={userState.country}
-                    onChange={handleCountryChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  >
-                      {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-              </div>
-
-              <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-
-              <AuthWidget 
+    <>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} userState={userState} />}
+      
+      <div className={`flex h-screen font-sans text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200 ${showSplash ? 'hidden' : 'flex'}`}>
+        {/* Mobile Header */}
+        <div className="md:hidden fixed top-0 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50 flex items-center justify-between p-4 transition-colors">
+          <span className="font-bold text-lg text-indigo-600 dark:text-indigo-400 font-brand">Pathfinder AI</span>
+          <div className="flex items-center gap-3">
+             <AuthWidget 
                   currentUser={currentUser}
                   onLogin={handleLogin}
                   onLogout={handleLogout}
                   onDeleteAccount={handleDeleteAccount}
                   onUpdateProfile={handleUpdateProfile}
               />
+             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-700 dark:text-gray-200 p-1">
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
-          
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
-             {/* Animation Wrapper */}
-             <div key={currentView} className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-forwards ease-out">
-                {renderView()}
-             </div>
-          </div>
-      </main>
+        </div>
 
-      {/* Floating Chatbot */}
-      <Chatbot />
-    </div>
+        {/* Mobile Sidebar Backdrop */}
+        {mobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Sidebar Container */}
+        <div className={`
+          fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+          ${mobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+        `}>
+           <Sidebar 
+              currentView={currentView} 
+              onChangeView={(view) => { setCurrentView(view); setMobileMenuOpen(false); }} 
+              isDark={isDark}
+              toggleTheme={toggleTheme}
+           />
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col h-screen overflow-hidden w-full pt-16 md:pt-0 relative">
+            <div className="hidden md:flex justify-end items-center p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm sticky top-0 z-30 border-b border-gray-100 dark:border-gray-800 gap-6">
+                
+                {/* Refined Region Selector */}
+                <div className="relative group">
+                    <div className="flex items-center text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 py-2 px-3 rounded-xl transition cursor-pointer">
+                        <Globe className="w-4 h-4 mr-2" />
+                        <span className="text-sm font-medium mr-2 text-gray-700 dark:text-gray-200">{userState.country}</span>
+                        <ChevronDown className="w-3 h-3 opacity-50" />
+                    </div>
+                    <select 
+                      value={userState.country}
+                      onChange={handleCountryChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    >
+                        {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                </div>
+
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+
+                <AuthWidget 
+                    currentUser={currentUser}
+                    onLogin={handleLogin}
+                    onLogout={handleLogout}
+                    onDeleteAccount={handleDeleteAccount}
+                    onUpdateProfile={handleUpdateProfile}
+                />
+            </div>
+            
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+               {/* Animation Wrapper */}
+               <div key={currentView} className="animate-slide-up fill-mode-forwards">
+                  {renderView()}
+               </div>
+            </div>
+        </main>
+
+        {/* Floating Chatbot */}
+        <Chatbot />
+      </div>
+    </>
   );
 };
 

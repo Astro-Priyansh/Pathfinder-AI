@@ -516,15 +516,17 @@ export const CollegeFinder: React.FC<CollegeFinderProps> = ({ onComplete, existi
                  </div>
              )}
 
-             <div className="min-h-[400px]">
+             <div key={activeTab} className="animate-fade-in min-h-[400px]">
                  {filteredList.length > 0 ? (
-                     <CollegeList 
-                        colleges={filteredList} 
-                        expandedId={expandedId} 
-                        onToggle={toggleExpand} 
-                        selectedIds={selectedColleges.map(c => c.name)}
-                        onSelect={toggleSelection}
-                     />
+                     <div className="animate-slide-right duration-300">
+                         <CollegeList 
+                            colleges={filteredList} 
+                            expandedId={expandedId} 
+                            onToggle={toggleExpand} 
+                            selectedIds={selectedColleges.map(c => c.name)}
+                            onSelect={toggleSelection}
+                         />
+                     </div>
                  ) : (
                      <div className="text-center text-gray-500 py-16 bg-white dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
                         <Search className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
