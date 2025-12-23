@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { User, LogIn, LogOut, Settings, Trash2, Camera, Upload, Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
@@ -8,12 +9,13 @@ interface AuthWidgetProps {
   onLogout: () => void;
   onDeleteAccount: () => void;
   onUpdateProfile: (updates: Partial<UserProfile>) => void;
+  themeColor?: string;
 }
 
-export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, onLogout, onDeleteAccount, onUpdateProfile }) => {
+export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, onLogout, onDeleteAccount, onUpdateProfile, themeColor = '#4f46e5' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [view, setView] = useState<'menu' | 'login' | 'signup' | 'profile'>('menu');
-  const [formData, setFormData] = useState({ username: '', password: '', email: '', avatarUrl: '' });
+  const [formData, setFormData] = useState<Partial<UserProfile>>({ username: '', password: '', email: '', avatarUrl: '', firstName: '', lastName: '' });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
   }, []);
 
   const resetForm = () => {
-    setFormData({ username: '', password: '', email: '', avatarUrl: '' });
+    setFormData({ username: '', password: '', email: '', avatarUrl: '', firstName: '', lastName: '' });
     setError('');
     setShowPassword(false);
     setLoading(false);
@@ -87,7 +89,7 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
           setError('Invalid username or password.');
         }
         setLoading(false);
-    }, 800); // Simulate network request
+    }, 800);
   };
 
   const handleSignUp = (e: React.FormEvent) => {
@@ -96,6 +98,16 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
     
     if (!formData.username || !formData.password) {
         setError("Username and password required");
+        return;
+    }
+
+    if (/\s/.test(formData.username)) {
+        setError("Username cannot contain spaces.");
+        return;
+    }
+
+    if (/\s/.test(formData.password)) {
+        setError("Password cannot contain spaces.");
         return;
     }
 
@@ -118,9 +130,11 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
         }
         
         const newUser: UserProfile = {
-          username: formData.username,
-          password: formData.password,
-          email: formData.email,
+          username: formData.username!,
+          password: formData.password!,
+          email: formData.email || '',
+          firstName: formData.firstName || '',
+          lastName: formData.lastName || '',
           joinDate: new Date().toISOString()
         };
         
@@ -152,7 +166,12 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
       setError('');
       setLoading(true);
       
-      // Check username uniqueness if changed
+      if (formData.username && /\s/.test(formData.username)) {
+          setError("Username cannot contain spaces.");
+          setLoading(false);
+          return;
+      }
+
       if (currentUser && formData.username !== currentUser.username) {
           const usersStr = localStorage.getItem('pathfinder_users');
           const users: UserProfile[] = usersStr ? JSON.parse(usersStr) : [];
@@ -164,12 +183,7 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
       }
 
       setTimeout(() => {
-          onUpdateProfile({ 
-              username: formData.username,
-              email: formData.email,
-              password: formData.password,
-              avatarUrl: formData.avatarUrl 
-          });
+          onUpdateProfile(formData);
           setLoading(false);
           setView('menu');
       }, 500);
@@ -181,12 +195,12 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
   };
 
   if (!currentUser) {
-    const strength = getPasswordStrength(formData.password);
+    const strength = getPasswordStrength(formData.password || '');
 
     return (
       <div className="relative" ref={menuRef}>
         <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded hidden md:inline-block">Guest Mode</span>
+            <span className="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded hidden md:inline-block uppercase tracking-widest">Guest</span>
             <button 
                 onClick={() => openModal('login')} 
                 className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition"
@@ -195,7 +209,8 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
             </button>
             <button 
                 onClick={() => openModal('signup')} 
-                className="px-4 py-2 text-sm font-bold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 dark:shadow-none hover:shadow-xl hover:scale-105 transform duration-200"
+                className="px-4 py-2 text-sm font-bold text-white rounded-xl transition shadow-lg hover:scale-105 transform duration-200"
+                style={{ backgroundColor: themeColor }}
             >
                 Sign Up
             </button>
@@ -203,29 +218,55 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
 
         {isOpen && (
             <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 z-50 p-6 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 font-brand">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 font-brand tracking-tight">
                     {view === 'login' ? 'Welcome Back' : 'Join Pathfinder'}
                 </h3>
                 
                 <form onSubmit={view === 'login' ? handleLogin : handleSignUp} className="space-y-4">
+                    {view === 'signup' && (
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">First Name</label>
+                                <input 
+                                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none text-sm"
+                                    style={{'--tw-ring-color': themeColor} as React.CSSProperties}
+                                    value={formData.firstName}
+                                    onChange={e => setFormData({...formData, firstName: e.target.value})}
+                                    placeholder="John"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Last Name</label>
+                                <input 
+                                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none text-sm"
+                                    style={{'--tw-ring-color': themeColor} as React.CSSProperties}
+                                    value={formData.lastName}
+                                    onChange={e => setFormData({...formData, lastName: e.target.value})}
+                                    placeholder="Doe"
+                                />
+                            </div>
+                        </div>
+                    )}
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Username</label>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Username (No Spaces)</label>
                         <input 
                             type="text" 
-                            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-medium"
+                            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none transition font-medium"
+                            style={{'--tw-ring-color': themeColor} as React.CSSProperties}
                             value={formData.username}
-                            onChange={e => setFormData({...formData, username: e.target.value})}
+                            onChange={e => setFormData({...formData, username: e.target.value.replace(/\s/g, '')})}
                             placeholder="johndoe"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Password</label>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Password (No Spaces)</label>
                         <div className="relative">
                             <input 
                                 type={showPassword ? "text" : "password"}
-                                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition pr-10 font-medium"
+                                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none transition pr-10 font-medium"
+                                style={{'--tw-ring-color': themeColor} as React.CSSProperties}
                                 value={formData.password}
-                                onChange={e => setFormData({...formData, password: e.target.value})}
+                                onChange={e => setFormData({...formData, password: e.target.value.replace(/\s/g, '')})}
                                 placeholder="••••••••"
                             />
                             <button
@@ -236,46 +277,37 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                         </div>
-                        {/* Visual Password Strength Meter */}
                         {view === 'signup' && formData.password && (
                             <div className="mt-3">
-                                <div className="flex justify-between items-center mb-1.5">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Security</span>
-                                    <span className={`text-xs font-bold uppercase tracking-wider ${
-                                        strength.label === 'Weak' ? 'text-red-500' : 
-                                        strength.label === 'Medium' ? 'text-yellow-500' : 'text-green-500'
-                                    }`}>{strength.label}</span>
+                                <div className="flex justify-between items-center mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                                    <span>Security</span>
+                                    <span className={strength.label === 'Weak' ? 'text-rose-500' : strength.label === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}>{strength.label}</span>
                                 </div>
-                                <div className="flex gap-1 h-1.5">
+                                <div className="flex gap-1 h-1">
                                     {[0, 1, 2, 3].map((i) => (
-                                        <div 
-                                            key={i}
-                                            className={`flex-1 rounded-full transition-colors duration-300 ${
-                                                i < strength.score ? strength.color : 'bg-gray-200 dark:bg-gray-700'
-                                            }`}
-                                        ></div>
+                                        <div key={i} className={`flex-1 rounded-full ${i < strength.score ? strength.color : 'bg-gray-200 dark:bg-gray-700'}`}></div>
                                     ))}
                                 </div>
-                                <p className="text-[10px] text-gray-400 mt-1">Use 8+ chars, numbers & symbols.</p>
                             </div>
                         )}
                     </div>
                     
-                    {error && <p className="text-red-500 text-xs font-medium bg-red-50 dark:bg-red-900/10 p-2 rounded-lg">{error}</p>}
+                    {error && <p className="text-rose-500 text-[10px] font-bold uppercase tracking-widest bg-rose-50 dark:bg-rose-900/10 p-2 rounded-lg text-center">{error}</p>}
                     
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition flex justify-center items-center shadow-lg shadow-indigo-200 dark:shadow-none"
+                        className="w-full py-3 text-white font-black uppercase tracking-widest text-xs rounded-xl transition flex justify-center items-center shadow-lg"
+                        style={{ backgroundColor: themeColor }}
                     >
                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (view === 'login' ? 'Log In' : 'Create Account')}
                     </button>
                     
-                    <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    <div className="text-center text-xs text-gray-500 dark:text-gray-400 mt-2 font-bold uppercase tracking-widest">
                         {view === 'login' ? (
-                            <p>New here? <button type="button" onClick={() => setView('signup')} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Create an account</button></p>
+                            <p>New? <button type="button" onClick={() => setView('signup')} className="hover:underline" style={{ color: themeColor }}>Create identity</button></p>
                         ) : (
-                            <p>Already have an account? <button type="button" onClick={() => setView('login')} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Log in</button></p>
+                            <p>Active? <button type="button" onClick={() => setView('login')} className="hover:underline" style={{ color: themeColor }}>Log in</button></p>
                         )}
                     </div>
                 </form>
@@ -291,11 +323,11 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
             onClick={() => { setIsOpen(!isOpen); setView('menu'); }}
             className="flex items-center space-x-2 focus:outline-none group"
         >
-            <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-indigo-500 transition shadow-sm">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 border-transparent transition shadow-sm" style={{ borderColor: isOpen ? themeColor : 'transparent', backgroundColor: `${themeColor}20` }}>
                 {currentUser.avatarUrl ? (
                     <img src={currentUser.avatarUrl} alt="User" className="w-full h-full object-cover" />
                 ) : (
-                    <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <User className="w-5 h-5" style={{ color: themeColor }} />
                 )}
             </div>
         </button>
@@ -305,28 +337,22 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
                 {view === 'menu' ? (
                     <>
                         <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
-                            <p className="font-bold text-gray-900 dark:text-white truncate text-lg" title={currentUser.username}>{currentUser.username}</p>
-                            {currentUser.email && <p className="text-xs text-gray-500 dark:text-gray-400 truncate" title={currentUser.email}>{currentUser.email}</p>}
-                            <p className="text-[10px] uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400 mt-2">Member since {new Date(currentUser.joinDate).toLocaleDateString()}</p>
+                            <p className="font-bold text-gray-900 dark:text-white truncate text-lg" title={currentUser.username}>{currentUser.firstName || currentUser.username} {currentUser.lastName || ''}</p>
+                            <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 truncate">@{currentUser.username}</p>
                         </div>
                         <div className="p-2 space-y-1">
                             <button 
                                 onClick={() => {
-                                    setFormData({ 
-                                        username: currentUser.username, 
-                                        password: currentUser.password || '',
-                                        email: currentUser.email || '',
-                                        avatarUrl: currentUser.avatarUrl || '' 
-                                    });
+                                    setFormData({ ...currentUser });
                                     setView('profile');
                                 }}
-                                className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl flex items-center transition"
+                                className="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl flex items-center transition"
                             >
                                 <Settings className="w-4 h-4 mr-3" /> Edit Profile
                             </button>
                             <button 
                                 onClick={() => { onLogout(); setIsOpen(false); }}
-                                className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl flex items-center transition"
+                                className="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl flex items-center transition"
                             >
                                 <LogOut className="w-4 h-4 mr-3" /> Sign Out
                             </button>
@@ -338,21 +364,20 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
                                         setIsOpen(false);
                                     }
                                 }}
-                                className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl flex items-center transition"
+                                className="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl flex items-center transition"
                             >
                                 <Trash2 className="w-4 h-4 mr-3" /> Delete Account
                             </button>
                         </div>
                     </>
                 ) : (
-                    <div className="p-6">
-                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 font-brand flex items-center">
-                            <Settings className="w-5 h-5 mr-2" /> Edit Profile
+                    <div className="p-6 overflow-y-auto max-h-[80vh]">
+                         <h3 className="text-lg font-black uppercase tracking-tighter text-gray-900 dark:text-white mb-6 font-brand flex items-center">
+                            <Settings className="w-5 h-5 mr-2" style={{ color: themeColor }} /> Identity Config
                          </h3>
                          <form onSubmit={handleUpdateSubmit} className="space-y-4">
                             
-                            {/* Profile Photo Upload */}
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-4 mb-4">
                                 <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden flex items-center justify-center border border-gray-200 dark:border-gray-700 relative group shadow-inner">
                                     {formData.avatarUrl ? (
                                         <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -367,71 +392,43 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
                                     </div>
                                 </div>
                                 <div className="flex-1">
-                                    <input 
-                                        type="file" 
-                                        ref={fileInputRef} 
-                                        onChange={handleFileChange} 
-                                        className="hidden" 
-                                        accept="image/*"
-                                    />
-                                    <button 
-                                        type="button" 
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="text-sm text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center"
-                                    >
-                                        <Upload className="w-3 h-3 mr-1" /> Upload Photo
-                                    </button>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Recommended: Square, max 2MB.</p>
+                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs font-black uppercase tracking-widest hover:underline" style={{ color: themeColor }}>Upload Cell</button>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5">Username</label>
-                                <input 
-                                    type="text" 
-                                    className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                                    value={formData.username}
-                                    onChange={e => setFormData({...formData, username: e.target.value})}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5">Email</label>
-                                <input 
-                                    type="email" 
-                                    placeholder="your@email.com"
-                                    className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                                    value={formData.email}
-                                    onChange={e => setFormData({...formData, email: e.target.value})}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5">Change Password</label>
-                                <div className="relative">
-                                    <input 
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="New Password"
-                                        className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none pr-10 font-medium"
-                                        value={formData.password}
-                                        onChange={e => setFormData({...formData, password: e.target.value})}
-                                    />
-                                     <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                    >
-                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                    </button>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">First</label>
+                                    <input className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.firstName || ''} onChange={e => setFormData({...formData, firstName: e.target.value})} />
                                 </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Last</label>
+                                    <input className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.lastName || ''} onChange={e => setFormData({...formData, lastName: e.target.value})} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">User Handle (No Spaces)</label>
+                                <input className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.username || ''} onChange={e => setFormData({...formData, username: e.target.value.replace(/\s/g, '')})} />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Neural Link (Email)</label>
+                                <input className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.email || ''} onChange={e => setFormData({...formData, email: e.target.value})} />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pass-Key (No Spaces)</label>
+                                <input type="password" placeholder="New Secret" className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.password || ''} onChange={e => setFormData({...formData, password: e.target.value.replace(/\s/g, '')})} />
                             </div>
                             
-                            {error && <p className="text-red-500 text-xs font-medium">{error}</p>}
+                            {error && <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest text-center">{error}</p>}
 
-                            <div className="flex gap-3 pt-2">
-                                <button type="button" onClick={handleCancel} className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition text-sm">Cancel</button>
-                                <button type="submit" disabled={loading} className="flex-1 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition text-sm flex justify-center items-center">
-                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                            <div className="flex gap-2 pt-2">
+                                <button type="button" onClick={handleCancel} className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 text-[10px] font-black uppercase tracking-widest rounded-xl">Cancel</button>
+                                <button type="submit" disabled={loading} className="flex-1 py-2.5 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition shadow-md" style={{ backgroundColor: themeColor }}>
+                                    {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Update'}
                                 </button>
                             </div>
                          </form>

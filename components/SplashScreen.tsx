@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { UserState } from '../types';
 import { Sparkles, Target, Compass } from 'lucide-react';
@@ -5,9 +6,10 @@ import { Sparkles, Target, Compass } from 'lucide-react';
 interface SplashScreenProps {
   onComplete: () => void;
   userState: UserState;
+  themeColor?: string;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userState }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userState, themeColor = '#4f46e5' }) => {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
       <div className="relative flex flex-col items-center">
         {/* Modern Hexagon Logo */}
         <div className="relative w-32 h-32 mb-12 group perspective-1000">
-          <svg viewBox="0 0 24 24" className="w-full h-full text-white/90 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] animate-float" fill="none" stroke="currentColor" strokeWidth="0.5">
+          <svg viewBox="0 0 24 24" className="w-full h-full drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] animate-float" style={{ color: themeColor }} fill="none" stroke="currentColor" strokeWidth="0.5">
             <path 
               d="M12 2L2 7V17L12 22L22 17V7L12 2Z" 
               strokeLinecap="round" 
@@ -70,6 +72,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
               y="15.2" 
               textAnchor="middle" 
               className="fill-white font-brand font-light text-[7px] tracking-tighter opacity-0 animate-fade-in-p-smooth"
+              style={{ fill: themeColor }}
             >
               P
             </text>
@@ -83,7 +86,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
         <div className="text-center">
           <div className="overflow-hidden mb-2 py-1">
             <h1 className="text-5xl font-extralight text-white font-brand tracking-[0.4em] uppercase opacity-0 animate-modern-reveal-smooth">
-              Pathfinder <span className="font-bold text-white/30">AI</span>
+              Pathfinder <span className="font-bold text-white/30" style={{ color: `${themeColor}50` }}>AI</span>
             </h1>
           </div>
           
@@ -97,14 +100,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
         
         {/* Modern Progress Indicator - Glassmorphism style */}
         <div className="mt-14 w-72 h-[1px] bg-white/5 relative overflow-hidden rounded-full">
-          <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent w-full animate-progress-flow-smooth`}></div>
+          <div className={`absolute inset-0 w-full animate-progress-flow-smooth`} style={{ background: `linear-gradient(to right, transparent, ${themeColor}, transparent)` }}></div>
         </div>
 
         {/* Contextual Progress Icons */}
         {userState.personalityResult && (
           <div className="mt-10 flex gap-6 opacity-0 animate-fade-in-extra-smooth">
             <div className="flex flex-col items-center gap-2">
-                <div className="w-1 h-1 rounded-full bg-white/60 animate-ping"></div>
+                <div className="w-1 h-1 rounded-full animate-ping" style={{ backgroundColor: themeColor }}></div>
                 <span className="text-[9px] text-white/20 font-bold tracking-[0.3em] uppercase">Profiles Loaded</span>
             </div>
           </div>

@@ -1,14 +1,16 @@
+
 import React, { useState } from 'react';
 import { X, MessageSquare, AlertCircle, Sparkles, Send, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
+  themeColor?: string;
 }
 
 type FeedbackType = 'suggestion' | 'issue' | 'other';
 
-export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
+export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, themeColor = '#4f46e5' }) => {
   const [type, setType] = useState<FeedbackType>('suggestion');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
@@ -36,14 +38,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
         
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-indigo-600 dark:bg-indigo-900/50 text-white">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center text-white" style={{ backgroundColor: themeColor }}>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold font-brand text-lg">Give Feedback</h3>
-              <p className="text-xs text-indigo-100 opacity-80">Help us improve Pathfinder AI</p>
+              <p className="text-xs opacity-80" style={{ color: 'rgba(255,255,255,0.8)' }}>Help us improve Pathfinder AI</p>
             </div>
           </div>
           <button 
@@ -82,14 +84,15 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                       onClick={() => setType(t.id as FeedbackType)}
                       className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-2 ${
                         isActive 
-                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' 
+                        ? 'bg-gray-50 dark:bg-gray-800' 
                         : 'border-gray-50 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
                       }`}
+                      style={{ borderColor: isActive ? themeColor : undefined }}
                     >
                       <div className={`p-2 rounded-lg ${t.bg} ${t.color}`}>
                         <Icon className="w-5 h-5" />
                       </div>
-                      <span className={`text-xs font-bold ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500'}`}>{t.label}</span>
+                      <span className="text-xs font-bold" style={{ color: isActive ? themeColor : undefined }}>{t.label}</span>
                     </button>
                   );
                 })}
@@ -103,7 +106,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder={type === 'suggestion' ? "I'd love to see a feature that..." : "Describe the issue you encountered..."}
-                className="w-full p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition font-medium min-h-[120px] resize-none text-gray-900 dark:text-white"
+                className="w-full p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 outline-none transition font-medium min-h-[120px] resize-none text-gray-900 dark:text-white"
+                style={{ '--tw-ring-color': themeColor } as React.CSSProperties}
                 required
               />
             </div>
@@ -111,7 +115,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
             <button
               type="submit"
               disabled={status === 'submitting' || !message.trim()}
-              className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 dark:shadow-none"
+              className="w-full py-4 text-white font-bold rounded-2xl transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+              style={{ backgroundColor: themeColor }}
             >
               {status === 'submitting' ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

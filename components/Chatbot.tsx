@@ -1,10 +1,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Minimize2, Maximize2, Loader2, Bot, Trash2 } from 'lucide-react';
-import { ChatMessage } from '../types';
+import { ChatMessage, UserSettings } from '../types';
 import { getChatResponse } from '../services/gemini';
 
-export const Chatbot: React.FC = () => {
+interface ChatbotProps {
+    settings?: UserSettings;
+}
+
+export const Chatbot: React.FC<ChatbotProps> = ({ settings }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -43,7 +47,7 @@ export const Chatbot: React.FC = () => {
     setLoading(true);
 
     try {
-      const responseText = await getChatResponse(messages, input);
+      const responseText = await getChatResponse(messages, input, settings?.botPersonality);
       
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),

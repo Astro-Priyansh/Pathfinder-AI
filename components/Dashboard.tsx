@@ -59,14 +59,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
     : null;
   
   const getGreeting = () => {
-      if (!dominantTrait) return `Welcome back, ${userState.name || 'Explorer'}!`;
+      const displayName = userState.name || 'Explorer';
+      if (!dominantTrait) return `Welcome back, ${displayName}!`;
       const traitName = dominantTrait.trait.toLowerCase();
-      if (traitName.includes('openness')) return `Hello, Creative Visionary!`;
-      if (traitName.includes('conscientiousness')) return `Welcome, Master Planner!`;
-      if (traitName.includes('extraversion')) return `Hi there, People Person!`;
-      if (traitName.includes('agreeableness')) return `Welcome, Team Player!`;
-      if (traitName.includes('neuroticism')) return `Hello, Deep Thinker!`;
-      return `Welcome back, ${userState.name || 'Explorer'}!`;
+      if (traitName.includes('openness')) return `Hello ${displayName}, Creative Visionary!`;
+      if (traitName.includes('conscientiousness')) return `Welcome ${displayName}, Master Planner!`;
+      if (traitName.includes('extraversion')) return `Hi ${displayName}, People Person!`;
+      if (traitName.includes('agreeableness')) return `Welcome ${displayName}, Team Player!`;
+      if (traitName.includes('neuroticism')) return `Hello ${displayName}, Deep Thinker!`;
+      return `Welcome back, ${displayName}!`;
   };
 
   // Dynamic Theme based on Personality

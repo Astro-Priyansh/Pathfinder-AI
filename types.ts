@@ -10,6 +10,25 @@ export enum AppView {
   HABIT_ENHANCER = 'HABIT_ENHANCER',
   COLLEGE_FINDER = 'COLLEGE_FINDER',
   SALARY_PREDICTOR = 'SALARY_PREDICTOR',
+  SETTINGS = 'SETTINGS',
+}
+
+export type BotPersonality = 'casual' | 'minimalist' | 'businessman' | 'professional' | 'friend' | 'guide';
+export type ResponseType = 'faster' | 'normal' | 'professional';
+
+export interface UserSettings {
+  themePrimary: string;
+  botPersonality: BotPersonality;
+  responseType: ResponseType;
+  isPro: boolean;
+  animationsEnabled: boolean;
+  dynamicThemeEnabled: boolean;
+  region: string;
+  calendarConnections?: {
+    local: boolean;
+    google: boolean;
+    calendly: boolean;
+  };
 }
 
 export interface UserProfile {
@@ -18,6 +37,12 @@ export interface UserProfile {
   email?: string;
   avatarUrl?: string;
   joinDate: string;
+  firstName?: string;
+  lastName?: string;
+  gender?: 'Male' | 'Female' | 'Rather not say';
+  dob?: string;
+  securityQuestion?: string;
+  securityAnswer?: string;
 }
 
 export interface PersonalityTrait {
@@ -42,7 +67,6 @@ export interface RoadmapStep {
   actions?: string[];
   completed?: boolean;
   iconHint?: string;
-  // Advanced detailing
   courses?: { platform: string; title: string; url: string }[];
   books?: { title: string; author: string }[];
   tutorials?: { title: string; url: string }[];
@@ -231,4 +255,5 @@ export interface UserState {
   dietPlan: DietPlan | null;
   collegeResults: CollegeResult | null;
   salaryInsights: SalaryInsights | null;
+  settings: UserSettings;
 }

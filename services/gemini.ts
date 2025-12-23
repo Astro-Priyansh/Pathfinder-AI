@@ -13,7 +13,8 @@ import {
     CareerRecommendation,
     CollegeResult,
     SalaryInsights,
-    DietPlan
+    DietPlan,
+    BotPersonality
 } from "../types";
 
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -867,22 +868,30 @@ export const getSalaryInsights = async (role: string, location: string = "Global
 };
 
 /**
- * Uses Gemini 3 Flash for quick conversational responses.
+ * Uses Gemini 3 Flash for conversational responses with personality.
  */
-export const getChatResponse = async (history: ChatMessage[], message: string) => {
+export const getChatResponse = async (history: ChatMessage[], message: string, personality: BotPersonality = 'guide') => {
   const ai = getAI();
   
-  // Construct context from recent history to keep it stateless but context-aware
+  const personalityMap: Record<BotPersonality, string> = {
+    casual: "You are a very casual, laid-back career buddy. Use slang, keep it informal, and use lots of emojis.",
+    minimalist: "You are a ultra-minimalist career assistant. Keep your responses extremely short, direct, and avoid any fluff or emojis.",
+    businessman: "You are a high-stakes business executive. Focus on ROI, career leverage, networking, and market trends. Be authoritative and concise.",
+    professional: "You are a professional HR consultant. Be polite, formal, and structured in your advice.",
+    friend: "You are a supportive, empathetic friend. Focus on mental well-being, work-life balance, and encouraging the user.",
+    guide: "You are a wise career mentor and navigator. Provide deep, insightful, and strategic guidance."
+  };
+
   const context = history.slice(-6).map(msg => `${msg.sender === 'user' ? 'User' : 'Assistant'}: ${msg.text}`).join('\n');
   
-  const prompt = `You are "Pathfinder AI", an empathetic, intelligent, and highly knowledgeable career counselor.
+  const prompt = `You are "Pathfinder AI".
+  
+  CURRENT PERSONALITY: ${personalityMap[personality]}
   
   Your Goals:
-  1. Encourage the user.
-  2. Provide actionable, concise advice.
-  3. If asked about features, guide them to the specific tools in the app (e.g., "Check out the Skill Gap tool for that").
-  
-  Tone: Professional yet warm.
+  1. Adhere strictly to the requested personality.
+  2. Provide actionable advice within that persona.
+  3. Encourage the user while staying in character.
   
   Recent Conversation Context:
   ${context}

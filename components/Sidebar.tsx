@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { LayoutDashboard, Brain, Heart, TrendingUp, Map, User, FileText, Compass, Moon, Sun, Coffee, GraduationCap, Banknote, MessageSquareQuote } from 'lucide-react';
+import { LayoutDashboard, Brain, Heart, TrendingUp, Map, User, FileText, Compass, GraduationCap, Banknote, MessageSquareQuote, Settings as SettingsIcon, Moon, Sun } from 'lucide-react';
 import { AppView } from '../types';
 
 interface SidebarProps {
@@ -8,9 +9,10 @@ interface SidebarProps {
   isDark: boolean;
   toggleTheme: () => void;
   onOpenFeedback: () => void;
+  themeColor?: string;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isDark, toggleTheme, onOpenFeedback }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isDark, toggleTheme, onOpenFeedback, themeColor = '#4f46e5' }) => {
   const navItems = [
     { id: AppView.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
     { id: AppView.PERSONALITY, label: 'Personality Test', icon: Brain },
@@ -20,7 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isD
     { id: AppView.ROADMAP, label: 'Career Roadmap', icon: Map },
     { id: AppView.SALARY_PREDICTOR, label: 'Salary Predictor', icon: Banknote },
     { id: AppView.COLLEGE_FINDER, label: 'College Finder', icon: GraduationCap },
-    { id: AppView.HABIT_ENHANCER, label: 'Habit Enhancer', icon: Coffee },
+    { id: AppView.HABIT_ENHANCER, label: 'Habit Enhancer', icon: GraduationCap },
     { id: AppView.RESUME_BUILDER, label: 'Resume Builder', icon: FileText },
   ];
 
@@ -29,10 +31,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isD
       <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="relative w-10 h-10 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="w-10 h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg viewBox="0 0 24 24" className="w-10 h-10 transition-colors duration-500" style={{ color: themeColor }} fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="absolute text-lg font-bold text-indigo-600 dark:text-indigo-400 font-brand">P</span>
+            <span className="absolute text-lg font-bold font-brand transition-colors duration-500" style={{ color: themeColor }}>P</span>
           </div>
           <span className="text-xl font-bold text-gray-900 dark:text-white font-brand tracking-tight">Pathfinder</span>
         </div>
@@ -48,41 +50,54 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isD
               onClick={() => onChangeView(item.id)}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
                 isActive 
-                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' 
+                  ? 'dark:bg-white/5 font-medium' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
               }`}
+              style={{ 
+                backgroundColor: isActive ? `${themeColor}15` : undefined,
+                color: isActive ? themeColor : undefined 
+              }}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'}`} />
+              <Icon className={`w-5 h-5 ${isActive ? '' : 'text-gray-400 dark:text-gray-500'}`} style={{ color: isActive ? themeColor : undefined }} />
               <span className="text-left">{item.label}</span>
             </button>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
+      <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-2">
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+        >
+          {isDark ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" style={{ color: themeColor }} />}
+          <span>{isDark ? 'Light Appearance' : 'Dark Appearance'}</span>
+        </button>
+
         <button
           onClick={onOpenFeedback}
-          className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium"
+          className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 transition-colors font-medium"
+          style={{ '--hover-color': themeColor } as React.CSSProperties}
         >
-          <MessageSquareQuote className="w-4 h-4" />
+          <MessageSquareQuote className="w-5 h-5" />
           <span>Send Feedback</span>
         </button>
 
         <button
-          onClick={toggleTheme}
-          className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          onClick={() => onChangeView(AppView.SETTINGS)}
+          className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
+            currentView === AppView.SETTINGS 
+              ? 'dark:bg-white/5 font-medium' 
+              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+          }`}
+          style={{ 
+            backgroundColor: currentView === AppView.SETTINGS ? `${themeColor}15` : undefined,
+            color: currentView === AppView.SETTINGS ? themeColor : undefined 
+          }}
         >
-          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+          <SettingsIcon className={`w-5 h-5 ${currentView === AppView.SETTINGS ? '' : 'text-gray-400 dark:text-gray-500'}`} />
+          <span className="text-left font-bold">Settings</span>
         </button>
-
-        <div className="p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg shadow-indigo-200 dark:shadow-none">
-          <h3 className="font-medium mb-1 font-brand">Unlock Pro</h3>
-          <p className="text-xs text-indigo-100 mb-3">Get advanced insights and mentor matching.</p>
-          <button className="w-full py-1.5 px-3 bg-white/20 rounded text-sm transition-colors text-center backdrop-blur-sm cursor-default" disabled>
-            Coming Soon...
-          </button>
-        </div>
       </div>
     </div>
   );
