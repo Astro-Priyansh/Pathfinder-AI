@@ -11,17 +11,29 @@ interface SplashScreenProps {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userState, themeColor = '#4f46e5' }) => {
   const [isExiting, setIsExiting] = useState(false);
+  const [showEffects, setShowEffects] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsExiting(true);
-      setTimeout(onComplete, 900); // Slightly longer exit for smoothness
-    }, 3500);
+    // Stage 1: Initial background fade
+    const readyTimer = setTimeout(() => setIsReady(true), 100);
+    
+    // Stage 2: Start shining effects after logo drawing is well underway
+    const effectsTimer = setTimeout(() => setShowEffects(true), 1200);
 
-    return () => clearTimeout(timer);
+    // Stage 3: Exit sequence
+    const exitTimer = setTimeout(() => {
+      setIsExiting(true);
+      setTimeout(onComplete, 900);
+    }, 4000);
+
+    return () => {
+      clearTimeout(readyTimer);
+      clearTimeout(effectsTimer);
+      clearTimeout(exitTimer);
+    };
   }, [onComplete]);
 
-  // Determine dynamic theme and content based on progress
   const targetCareer = userState.targetCareer;
   const traits = userState.personalityResult?.traits || [];
   const dominantTrait = traits.length > 0 
@@ -54,43 +66,42 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
       }`}
     >
       {/* Dynamic Immersive Background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${themeGradient} opacity-25 blur-[140px] animate-soft-pulse`}></div>
+      <div className={`absolute inset-0 bg-gradient-to-br ${themeGradient} blur-[140px] animate-soft-pulse transition-opacity duration-[2500ms] ${isReady ? 'opacity-25' : 'opacity-0'}`}></div>
       
       <div className="relative flex flex-col items-center">
-        {/* Modern Hexagon Logo */}
+        {/* Modern Hexagon Logo Container */}
         <div className="relative w-32 h-32 mb-12 group perspective-1000">
-          <svg viewBox="0 0 24 24" className="w-full h-full drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] animate-float" style={{ color: themeColor }} fill="none" stroke="currentColor" strokeWidth="0.5">
+          <svg viewBox="0 0 24 24" className="w-full h-full drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] animate-float" style={{ color: themeColor }} fill="none" stroke="currentColor" strokeWidth="0.5">
             <path 
               d="M12 2L2 7V17L12 22L22 17V7L12 2Z" 
               strokeLinecap="round" 
               strokeLinejoin="round" 
               className="path-draw-smooth"
             />
-            {/* Minimal Static P */}
             <text 
               x="12" 
               y="15.2" 
               textAnchor="middle" 
-              className="fill-white font-brand font-light text-[7px] tracking-tighter opacity-0 animate-fade-in-p-smooth"
+              className="font-brand font-light text-[7px] tracking-tighter opacity-0 animate-fade-in-p-smooth"
               style={{ fill: themeColor }}
             >
               P
             </text>
           </svg>
           
-          {/* Subtle Scanning Line - More elegant */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent h-[20%] w-full animate-elegant-scan pointer-events-none"></div>
+          {/* Scanning Line - Only visible after logo drawing starts */}
+          <div className={`absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent h-[20%] w-full animate-elegant-scan pointer-events-none transition-opacity duration-1000 ${showEffects ? 'opacity-100' : 'opacity-0'}`}></div>
         </div>
 
-        {/* Minimal Typography */}
+        {/* Typography Reveal */}
         <div className="text-center">
-          <div className="overflow-hidden mb-2 py-1">
+          <div className="overflow-hidden mb-2 py-1 px-4">
             <h1 className="text-5xl font-extralight text-white font-brand tracking-[0.4em] uppercase opacity-0 animate-modern-reveal-smooth">
               Pathfinder <span className="font-bold text-white/30" style={{ color: `${themeColor}50` }}>AI</span>
             </h1>
           </div>
           
-          <div className="flex items-center justify-center gap-3 mt-4 opacity-0 animate-fade-in-delayed-smooth">
+          <div className={`flex items-center justify-center gap-3 mt-4 transition-all duration-1000 ${showEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
              {targetCareer ? <Target className="w-4 h-4 text-white/40" /> : <Compass className="w-4 h-4 text-white/40" />}
              <p className="text-gray-400 text-xs font-medium tracking-[0.25em] uppercase">
                 {getStatusMessage()}
@@ -98,17 +109,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
           </div>
         </div>
         
-        {/* Modern Progress Indicator - Glassmorphism style */}
-        <div className="mt-14 w-72 h-[1px] bg-white/5 relative overflow-hidden rounded-full">
+        {/* Progress Bar - Synchronized with effects */}
+        <div className={`mt-14 w-72 h-[1px] bg-white/5 relative overflow-hidden rounded-full transition-opacity duration-1000 ${showEffects ? 'opacity-100' : 'opacity-0'}`}>
           <div className={`absolute inset-0 w-full animate-progress-flow-smooth`} style={{ background: `linear-gradient(to right, transparent, ${themeColor}, transparent)` }}></div>
         </div>
 
-        {/* Contextual Progress Icons */}
+        {/* Profiles Loaded Status */}
         {userState.personalityResult && (
-          <div className="mt-10 flex gap-6 opacity-0 animate-fade-in-extra-smooth">
+          <div className={`mt-10 flex gap-6 transition-all duration-1000 delay-500 ${showEffects ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-col items-center gap-2">
                 <div className="w-1 h-1 rounded-full animate-ping" style={{ backgroundColor: themeColor }}></div>
-                <span className="text-[9px] text-white/20 font-bold tracking-[0.3em] uppercase">Profiles Loaded</span>
+                <span className="text-[9px] text-white/20 font-bold tracking-[0.3em] uppercase">Neural Profiles Synced</span>
             </div>
           </div>
         )}
@@ -118,22 +129,22 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
         .path-draw-smooth {
           stroke-dasharray: 80;
           stroke-dashoffset: 80;
-          animation: draw-smooth 3s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+          animation: draw-smooth 3.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
           opacity: 0;
         }
 
         @keyframes draw-smooth {
-          0% { opacity: 0; stroke-dashoffset: 80; stroke-width: 0.2; }
-          20% { opacity: 1; }
+          0% { opacity: 0; stroke-dashoffset: 80; stroke-width: 0.1; }
+          15% { opacity: 1; }
           100% { stroke-dashoffset: 0; stroke-width: 0.7; opacity: 1; }
         }
 
         @keyframes modern-reveal-smooth {
           from {
-            transform: translateY(30px);
-            letter-spacing: 0.6em;
+            transform: translateY(20px);
+            letter-spacing: 0.5em;
             opacity: 0;
-            filter: blur(10px);
+            filter: blur(8px);
           }
           to {
             transform: translateY(0);
@@ -156,16 +167,16 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
 
         @keyframes soft-pulse {
           0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.3; transform: scale(1.05); }
+          50% { opacity: 0.35; transform: scale(1.08); }
         }
 
         @keyframes float {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
+          50% { transform: translateY(-8px); }
         }
 
         .animate-soft-pulse {
-          animation: soft-pulse 8s ease-in-out infinite;
+          animation: soft-pulse 10s ease-in-out infinite;
         }
 
         .animate-float {
@@ -173,37 +184,26 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
         }
 
         .animate-modern-reveal-smooth {
-          animation: modern-reveal-smooth 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.8s;
+          animation: modern-reveal-smooth 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation-delay: 1s;
         }
 
         .animate-elegant-scan {
-          animation: elegant-scan 4s cubic-bezier(0.445, 0.05, 0.55, 0.95) infinite;
-          animation-delay: 1.5s;
+          animation: elegant-scan 5s cubic-bezier(0.445, 0.05, 0.55, 0.95) infinite;
         }
 
         .animate-progress-flow-smooth {
-          animation: progress-flow-smooth 3s ease-in-out infinite;
+          animation: progress-flow-smooth 4s ease-in-out infinite;
         }
 
         .animate-fade-in-p-smooth {
-          animation: fadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-          animation-delay: 2.2s;
+          animation: fadeInText 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          animation-delay: 2.5s;
         }
 
-        .animate-fade-in-delayed-smooth {
-          animation: fadeIn 1.5s ease-out forwards;
-          animation-delay: 1.8s;
-        }
-
-        .animate-fade-in-extra-smooth {
-          animation: fadeIn 2s ease-out forwards;
-          animation-delay: 2.8s;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; filter: blur(4px); }
-          to { opacity: 1; filter: blur(0); }
+        @keyframes fadeInText {
+          from { opacity: 0; filter: blur(4px); transform: translateY(2px); }
+          to { opacity: 1; filter: blur(0); transform: translateY(0); }
         }
 
         .perspective-1000 {

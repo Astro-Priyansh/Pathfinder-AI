@@ -81,6 +81,13 @@ export const Settings: React.FC<SettingsProps> = ({
   const [localDynamicTheme, setLocalDynamicTheme] = useState(settings.dynamicThemeEnabled);
   const [hasChanges, setHasChanges] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    // Delay background glow to prevent popping before entry animation starts
+    const timer = setTimeout(() => setIsReady(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [isEditingIdentity, setIsEditingIdentity] = useState(false);
   const [identityForm, setIdentityForm] = useState<Partial<UserProfile>>(user || {});
@@ -183,13 +190,13 @@ export const Settings: React.FC<SettingsProps> = ({
 
   return (
     <div className={`fixed inset-0 z-[100] transition-all duration-500 overflow-y-auto font-sans selection:bg-indigo-500/30 ${
-      isClosing ? 'animate-out fade-out zoom-out-95 duration-400 pointer-events-none' : 'animate-in fade-in zoom-in-105 duration-500'
+      isClosing ? 'animate-zoom-out' : 'animate-zoom-in'
     } ${isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
       
       {/* Immersive Glass Background FX */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className={`fixed inset-0 pointer-events-none overflow-hidden transition-opacity duration-1000 ${isReady ? 'opacity-100' : 'opacity-0'}`}>
           <div 
-            className={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[180px] animate-pulse opacity-40 transition-colors duration-1000`}
+            className={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[180px] animate-pulse transition-colors duration-1000 opacity-40`}
             style={{ backgroundColor: `${previewAccentColor}` }}
           ></div>
           <div className="absolute bottom-[-5%] right-[-5%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[160px] animate-pulse opacity-20" style={{ animationDelay: '2s' }}></div>
@@ -363,7 +370,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     {/* Server Mode Selection */}
                     <section className={`rounded-[3rem] p-8 border transition-all ${isDark ? 'bg-white/5 border-white/10 shadow-2xl' : 'bg-white/40 border-white/80 shadow-2xl shadow-gray-200/50 backdrop-blur-2xl'}`}>
                         <div className="flex items-center gap-4 mb-10">
-                            <div className={`p-4 rounded-2xl shadow-lg ${isDark ? 'bg-cyan-500/20 text-cyan-400' : 'bg-cyan-50 text-cyan-600'}`} style={{ backgroundColor: !isDark ? `${previewAccentColor}11` : undefined, color: !isDark ? previewAccentColor : undefined }}>
+                            <div className={`p-4 rounded-2xl shadow-lg ${isDark ? 'bg-cyan-500/20 text-cyan-400' : 'bg-cyan-100 text-cyan-600'}`} style={{ backgroundColor: !isDark ? `${previewAccentColor}11` : undefined, color: !isDark ? previewAccentColor : undefined }}>
                                 <Server className="w-7 h-7" />
                             </div>
                             <h2 className="text-2xl font-black">Protocol Mode</h2>
@@ -495,7 +502,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                         <div className="absolute inset-0 bg-black/60 rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white">
                                             <Camera className="w-8 h-8" />
                                         </div>
-                                        <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} accept="image/*" />
+                                        <input type="file" handleFileChange={handleFileChange} className="hidden" accept="image/*" />
                                     </div>
                                 </div>
 
@@ -553,7 +560,7 @@ export const Settings: React.FC<SettingsProps> = ({
                         ) : (
                             <div className="space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                 <div className="flex items-center gap-6">
-                                    <div className={`w-24 h-24 rounded-[2.2rem] flex items-center justify-center text-4xl font-black overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-105 ${isDark ? 'bg-white/10 border border-white/20' : 'bg-white border-white shadow-xl'}`}>
+                                    <div className={`w-24 h-24 rounded-[2.2rem] flex items-center justify-center text-4xl font-black overflow-hidden shadow-2xl transition-all duration-500 group-hover:scale-105 ${isDark ? 'bg-white/10 border border-white/20' : 'bg-white border border-white shadow-xl'}`}>
                                         {user.avatarUrl ? <img src={user.avatarUrl} className="w-full h-full object-cover" /> : user.username[0].toUpperCase()}
                                     </div>
                                     <div>
@@ -689,6 +696,12 @@ export const Settings: React.FC<SettingsProps> = ({
         }
         input:focus {
            border-color: ${previewAccentColor} !important;
+        }
+        .animate-zoom-in {
+            animation: zoom-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-zoom-out {
+            animation: zoom-out 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
     </div>
