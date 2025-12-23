@@ -68,7 +68,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
       {/* Dynamic Immersive Background */}
       <div className={`absolute inset-0 bg-gradient-to-br ${themeGradient} blur-[80px] sm:blur-[140px] animate-soft-pulse transition-opacity duration-[2500ms] ${isReady ? 'opacity-25' : 'opacity-0'}`}></div>
       
-      <div className="relative flex flex-col items-center w-full max-w-sm">
+      <div className="relative flex flex-col items-center w-full max-w-lg">
         {/* Modern Hexagon Logo Container */}
         <div className="relative w-24 h-24 sm:w-32 sm:h-32 mb-8 sm:mb-12 group perspective-1000">
           <svg viewBox="0 0 24 24" className="w-full h-full drop-shadow-[0_0_25px_rgba(255,255,255,0.1)] animate-float" style={{ color: themeColor }} fill="none" stroke="currentColor" strokeWidth="0.5">
@@ -94,23 +94,23 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, userStat
         </div>
 
         {/* Typography Reveal */}
-        <div className="text-center w-full">
-          <div className="overflow-hidden mb-2 py-1 px-2 sm:px-4">
-            <h1 className="text-3xl sm:text-5xl font-extralight text-white font-brand tracking-[0.3em] sm:tracking-[0.4em] uppercase opacity-0 animate-modern-reveal-smooth whitespace-nowrap">
+        <div className="text-center w-full relative">
+          <div className="mb-2 py-1 px-2 sm:px-4 flex justify-center">
+            <h1 className="text-3xl sm:text-5xl font-extralight text-white font-brand tracking-[0.2em] sm:tracking-[0.3em] uppercase opacity-0 animate-modern-reveal-smooth whitespace-nowrap">
               Pathfinder <span className="font-bold text-white/30" style={{ color: `${themeColor}50` }}>AI</span>
             </h1>
           </div>
           
           <div className={`flex items-center justify-center gap-2 sm:gap-3 mt-4 transition-all duration-1000 ${showEffects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
              {targetCareer ? <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" /> : <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" />}
-             <p className="text-gray-400 text-[10px] sm:text-xs font-medium tracking-[0.15em] sm:tracking-[0.25em] uppercase px-4">
+             <p className="text-gray-400 text-[10px] sm:text-xs font-medium tracking-[0.15em] sm:tracking-[0.25em] uppercase px-4 max-w-xs sm:max-w-md">
                 {getStatusMessage()}
              </p>
           </div>
         </div>
         
         {/* Progress Bar - Synchronized with effects */}
-        <div className={`mt-10 sm:mt-14 w-full max-w-[240px] sm:max-w-[288px] h-[1px] bg-white/5 relative overflow-hidden rounded-full transition-opacity duration-1000 ${showEffects ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`mt-10 sm:mt-14 w-full max-w-[200px] sm:max-w-[288px] h-[1px] bg-white/5 relative overflow-hidden rounded-full transition-opacity duration-1000 ${showEffects ? 'opacity-100' : 'opacity-0'}`}>
           <div className={`absolute inset-0 w-full animate-progress-flow-smooth`} style={{ background: `linear-gradient(to right, transparent, ${themeColor}, transparent)` }}></div>
         </div>
 
