@@ -18,7 +18,9 @@ import {
 
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const MODEL_FAST = 'gemini-2.5-flash';
+// Models for different task complexities as per latest Gemini API guidelines
+const MODEL_FLASH = 'gemini-3-flash-preview';
+const MODEL_PRO = 'gemini-3-pro-preview';
 
 // Helper to parse JSON safely
 const parseJSON = <T>(text: string | undefined, fallback: T): T => {
@@ -37,6 +39,9 @@ const parseJSON = <T>(text: string | undefined, fallback: T): T => {
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for deep psychological and professional analysis.
+ */
 export const analyzePersonality = async (answers: { question: string; answer: string }[]): Promise<PersonalityResult | null> => {
     const ai = getAI();
     const prompt = `Act as a clinical psychologist and expert career counselor. Analyze the following Big Five personality test answers to create a highly accurate and nuanced profile.
@@ -55,7 +60,7 @@ export const analyzePersonality = async (answers: { question: string; answer: st
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -78,6 +83,9 @@ export const analyzePersonality = async (answers: { question: string; answer: st
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for strategic interest mapping.
+ */
 export const analyzeInterests = async (input: string): Promise<InterestAnalysis | null> => {
     const ai = getAI();
     const prompt = `Act as a career strategist. Analyze the following hobbies and interests to uncover underlying motivations and professional applications.
@@ -94,7 +102,7 @@ export const analyzeInterests = async (input: string): Promise<InterestAnalysis 
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -114,6 +122,9 @@ export const analyzeInterests = async (input: string): Promise<InterestAnalysis 
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for learning plan development.
+ */
 export const getInterestDevelopmentTips = async (interest: string): Promise<InterestDevelopmentPlan | null> => {
     const ai = getAI();
     const prompt = `Create a structured, step-by-step roadmap for a beginner to master the interest/skill: "${interest}".
@@ -127,7 +138,7 @@ export const getInterestDevelopmentTips = async (interest: string): Promise<Inte
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -149,22 +160,22 @@ export const getInterestDevelopmentTips = async (interest: string): Promise<Inte
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for career path planning.
+ */
 export const generateRoadmap = async (currentRole: string, targetRole: string): Promise<CareerRoadmap | null> => {
     const ai = getAI();
-    const prompt = `Create a realistic career roadmap to go from "${currentRole}" to "${targetRole}".
+    const prompt = `Create a realistic, actionable career roadmap to go from "${currentRole}" to "${targetRole}".
     
-    Task:
-    Provide 5-7 chronological steps. For each step:
-    - 'title': Milestone name (e.g., "Gain Junior Certification").
-    - 'description': What to learn or achieve.
-    - 'duration': Estimated time (e.g., "3-6 months").
-    - 'resources': Key courses, certifications, or projects.
+    CRITICAL INSTRUCTIONS:
+    - Do NOT just return a final state. Provide 5-7 incremental, actionable steps.
+    - Each step must have a specific 'title', a 'description' of what to achieve, a 'duration' (e.g. "2 Months"), and 'resources' (specific names of platforms or skills).
     
     Return strict JSON.`;
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -181,10 +192,12 @@ export const generateRoadmap = async (currentRole: string, targetRole: string): 
                                     description: { type: Type.STRING }, 
                                     duration: { type: Type.STRING }, 
                                     resources: { type: Type.ARRAY, items: { type: Type.STRING } } 
-                                } 
+                                },
+                                required: ["title", "description", "duration", "resources"]
                             } 
                         }
-                    }
+                    },
+                    required: ["targetRole", "steps"]
                 }
             }
         });
@@ -195,23 +208,31 @@ export const generateRoadmap = async (currentRole: string, targetRole: string): 
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for ultra-detailed career milestone generation.
+ */
 export const generateAdvancedRoadmap = async (currentRole: string, targetRole: string): Promise<CareerRoadmap | null> => {
     const ai = getAI();
-    const prompt = `Create a highly detailed, executive-level career roadmap from "${currentRole}" to "${targetRole}".
+    const prompt = `Create an ultra-detailed, executive-level career roadmap from "${currentRole}" to "${targetRole}".
+    
+    This is an ADVANCED plan. It must be significantly more comprehensive than a standard guide.
     
     Task:
-    Provide 5-7 strategic steps. For each step:
-    - 'title': Milestone name.
-    - 'description': Strategic focus.
-    - 'duration': Realistic timeline.
-    - 'resources': Advanced certifications, executive education, or influential books.
-    - 'actions': Specific, granular actions (e.g., "Lead a cross-functional team of 5", "Speak at X conference").
+    Provide 6-8 strategic, actionable steps. For each step:
+    - 'title': Strategic milestone.
+    - 'description': Comprehensive explanation of why this is important for the transition and how it fits the long-term career goal.
+    - 'duration': Granular timeline (e.g. "3-4 Months").
+    - 'actions': 4-6 specific, granular tasks (e.g., "Build a network of 5 mentors in X domain", "Publish 2 thought-leadership articles on Y").
+    - 'courses': Array of { platform: string, title: string, url: string } suggesting top-tier courses (Coursera, LinkedIn Learning, Udemy, etc).
+    - 'books': Array of { title: string, author: string } suggesting definitive industry books.
+    - 'tutorials': Array of { title: string, url: string } for specific technical or soft-skill hands-on tutorials.
+    - 'channels': Array of { platform: string, name: string, url: string } (e.g. YouTube, Newsletters, Podcasts) to stay updated.
     
     Return strict JSON.`;
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -228,12 +249,17 @@ export const generateAdvancedRoadmap = async (currentRole: string, targetRole: s
                                     title: { type: Type.STRING }, 
                                     description: { type: Type.STRING }, 
                                     duration: { type: Type.STRING }, 
-                                    resources: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    actions: { type: Type.ARRAY, items: { type: Type.STRING } }
-                                } 
+                                    actions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                    courses: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { platform: { type: Type.STRING }, title: { type: Type.STRING }, url: { type: Type.STRING } } } },
+                                    books: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, author: { type: Type.STRING } } } },
+                                    tutorials: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, url: { type: Type.STRING } } } },
+                                    channels: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { platform: { type: Type.STRING }, name: { type: Type.STRING }, url: { type: Type.STRING } } } }
+                                },
+                                required: ["title", "description", "duration", "actions"]
                             } 
                         }
-                    }
+                    },
+                    required: ["targetRole", "steps"]
                 }
             }
         });
@@ -244,6 +270,9 @@ export const generateAdvancedRoadmap = async (currentRole: string, targetRole: s
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for career simulation game turns.
+ */
 export const generateSimulationTurn = async (role: string, context: string, userAction: string): Promise<SimulationTurn | null> => {
     const ai = getAI();
     const prompt = `You are a Career Simulation Engine.
@@ -261,7 +290,7 @@ export const generateSimulationTurn = async (role: string, context: string, user
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -292,6 +321,9 @@ export const generateSimulationTurn = async (role: string, context: string, user
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for deep skill gap logic.
+ */
 export const analyzeSkillGap = async (currentSkills: string, targetRole: string): Promise<SkillGapAnalysis | null> => {
     const ai = getAI();
     const prompt = `Analyze the skill gap for a professional aiming to be a "${targetRole}".
@@ -307,7 +339,7 @@ export const analyzeSkillGap = async (currentSkills: string, targetRole: string)
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -329,6 +361,9 @@ export const analyzeSkillGap = async (currentSkills: string, targetRole: string)
     }
 };
 
+/**
+ * Uses Gemini 3 Flash for quick mentoring tips.
+ */
 export const getSkillAdvice = async (skill: string, currentLevel: number): Promise<string> => {
     const ai = getAI();
     const prompt = `Act as a senior mentor. The user has a skill level of ${currentLevel}/100 in "${skill}".
@@ -337,7 +372,7 @@ export const getSkillAdvice = async (skill: string, currentLevel: number): Promi
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_FLASH,
             contents: prompt,
         });
         return response.text?.trim() || "Practice regularly and seek feedback.";
@@ -347,6 +382,9 @@ export const getSkillAdvice = async (skill: string, currentLevel: number): Promi
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for expert resume writing.
+ */
 export const optimizeResumeSection = async (section: string, text: string): Promise<string> => {
     const ai = getAI();
     const prompt = `You are a professional resume writer (CPRW certified). 
@@ -364,7 +402,7 @@ export const optimizeResumeSection = async (section: string, text: string): Prom
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
         });
         return response.text?.trim() || text;
@@ -374,6 +412,9 @@ export const optimizeResumeSection = async (section: string, text: string): Prom
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for career guidance and global research.
+ */
 export const getCareerRecommendations = async (profile: string): Promise<CareerRecommendation[]> => {
     const ai = getAI();
     const prompt = `Act as a global talent acquisition specialist. Based on the following user profile, recommend the top 3-5 career paths.
@@ -393,7 +434,7 @@ export const getCareerRecommendations = async (profile: string): Promise<CareerR
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -420,6 +461,9 @@ export const getCareerRecommendations = async (profile: string): Promise<CareerR
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for high-performance schedule design.
+ */
 export const getDailyRoutine = async (targetCareer: string): Promise<DailyRoutine | null> => {
     const ai = getAI();
     const prompt = `Design a high-performance daily routine for an aspiring "${targetCareer}".
@@ -434,7 +478,7 @@ export const getDailyRoutine = async (targetCareer: string): Promise<DailyRoutin
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -477,6 +521,9 @@ export const getDailyRoutine = async (targetCareer: string): Promise<DailyRoutin
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for scientific fitness planning.
+ */
 export const getExercisePlan = async (goal: string): Promise<ExercisePlan | null> => {
     const ai = getAI();
     const prompt = `Create a scientifically structured weekly exercise plan for the goal: "${goal}".
@@ -490,7 +537,7 @@ export const getExercisePlan = async (goal: string): Promise<ExercisePlan | null
 
     try {
         const response = await ai.models.generateContent({
-            model: MODEL_FAST,
+            model: MODEL_PRO,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -533,6 +580,9 @@ export const getExercisePlan = async (goal: string): Promise<ExercisePlan | null
     }
 };
 
+/**
+ * Uses Gemini 3 Pro for nutritional reasoning.
+ */
 export const getDietPlan = async (bmi: number, routine: DailyRoutine, fitness: ExercisePlan) => {
   const ai = getAI();
   const prompt = `Create a personalized, healthy diet plan.
@@ -553,7 +603,7 @@ export const getDietPlan = async (bmi: number, routine: DailyRoutine, fitness: E
 
   try {
       const response = await ai.models.generateContent({
-          model: MODEL_FAST,
+          model: MODEL_PRO,
           contents: prompt,
           config: {
               responseMimeType: "application/json",
@@ -661,6 +711,9 @@ export const getDietPlan = async (bmi: number, routine: DailyRoutine, fitness: E
   }
 };
 
+/**
+ * Uses Gemini 3 Pro for global college research.
+ */
 export const findColleges = async (field: string, country: string): Promise<CollegeResult> => {
   const ai = getAI();
   const prompt = `Act as an educational consultant. List top colleges for "${field}".
@@ -680,7 +733,7 @@ export const findColleges = async (field: string, country: string): Promise<Coll
 
   try {
       const response = await ai.models.generateContent({
-          model: MODEL_FAST,
+          model: MODEL_PRO,
           contents: prompt,
           config: {
             responseMimeType: "application/json",
@@ -748,6 +801,9 @@ export const findColleges = async (field: string, country: string): Promise<Coll
   }
 };
 
+/**
+ * Uses Gemini 3 Pro for complex salary data analysis.
+ */
 export const getSalaryInsights = async (role: string, location: string = "Global"): Promise<SalaryInsights | null> => {
   const ai = getAI();
   const prompt = `Act as a compensation analyst. Analyze market salary data for the role of "${role}" in "${location}".
@@ -763,7 +819,7 @@ export const getSalaryInsights = async (role: string, location: string = "Global
 
   try {
       const response = await ai.models.generateContent({
-          model: MODEL_FAST,
+          model: MODEL_PRO,
           contents: prompt,
           config: {
             responseMimeType: "application/json",
@@ -810,6 +866,9 @@ export const getSalaryInsights = async (role: string, location: string = "Global
   }
 };
 
+/**
+ * Uses Gemini 3 Flash for quick conversational responses.
+ */
 export const getChatResponse = async (history: ChatMessage[], message: string) => {
   const ai = getAI();
   
@@ -834,12 +893,12 @@ export const getChatResponse = async (history: ChatMessage[], message: string) =
 
   try {
     const response = await ai.models.generateContent({
-      model: MODEL_FAST,
+      model: MODEL_FLASH,
       contents: prompt,
     });
     return response.text?.trim() || "I'm having trouble processing that right now.";
-  } catch (e) {
-    console.error("Chat Error:", e);
+  } catch (error) {
+    console.error("Chat Error:", error);
     return "Sorry, I am unable to connect to the server right now.";
   }
 };

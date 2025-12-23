@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { UserState, AppView } from '../types';
 import { ArrowRight, CheckCircle, Brain, Target, AlertCircle, User, Compass, FileText, Star, Briefcase, Zap, Activity, Clock, Coffee, Map, TrendingUp, GraduationCap, Sparkles } from 'lucide-react';
@@ -47,6 +48,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
   const hasSkills = !!userState.skillGap;
   const hasResume = !!userState.resume;
   const hasRecommendations = !!userState.recommendations;
+  const hasRecommendationsSet = !!userState.recommendations;
   const hasHabits = !!userState.habitRoutine;
   const targetCareer = userState.targetCareer;
 
@@ -81,15 +83,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
 
   const themeGradient = getThemeGradient();
 
-  // Journey Tracking
+  // Journey Tracking - Enhanced with Roadmap completion
+  const roadmapSteps = userState.roadmap?.steps || [];
+  const roadmapCompletedCount = roadmapSteps.filter(s => s.completed).length;
+  const roadmapTotal = roadmapSteps.length || 1;
+  const roadmapProgressFactor = roadmapSteps.length > 0 ? (roadmapCompletedCount / roadmapTotal) : 0;
+
+  // Fix: Added missing icon properties to journeySteps
   const journeySteps = [
-    { label: 'Discovery', completed: hasPersonality && !!userState.interestAnalysis, icon: Brain },
-    { label: 'Target Set', completed: !!targetCareer, icon: Target },
-    { label: 'Roadmap', completed: !!userState.roadmap, icon: Map },
-    { label: 'Skills Gap', completed: !!userState.skillGap, icon: TrendingUp },
-    { label: 'Routine', completed: !!userState.habitRoutine, icon: Activity },
+    { label: 'Discovery', completed: hasPersonality && !!userState.interestAnalysis, weight: 1, icon: Brain },
+    { label: 'Target Set', completed: !!targetCareer, weight: 1, icon: Target },
+    { label: 'Skills Gap', completed: !!userState.skillGap, weight: 1, icon: Zap },
+    { label: 'Routine', completed: !!userState.habitRoutine, weight: 1, icon: Activity },
+    { label: 'Roadmap', completed: !!userState.roadmap, progress: roadmapProgressFactor, weight: 1, icon: Map },
   ];
   
+  const totalWeight = journeySteps.reduce((acc, s) => acc + s.weight, 0);
+  const earnedWeight = journeySteps.reduce((acc, s) => {
+    if (s.progress !== undefined) return acc + (s.progress * s.weight);
+    return acc + (s.completed ? s.weight : 0);
+  }, 0);
+
+  const journeyProgress = Math.round((earnedWeight / totalWeight) * 100);
+
   // If no target career, calculate general profile completion
   const profileSteps = [
       { label: 'Personality', completed: hasPersonality },
@@ -99,15 +115,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
   ];
   const profileProgress = Math.round((profileSteps.filter(s => s.completed).length / profileSteps.length) * 100);
 
-  const completedJourneySteps = journeySteps.filter(s => s.completed).length;
-  const journeyProgress = Math.round((completedJourneySteps / journeySteps.length) * 100);
-
   const pieData = [
     { name: 'Completed', value: profileProgress },
     { name: 'Remaining', value: 100 - profileProgress },
   ];
 
-  const nextStep = userState.roadmap?.steps?.[0];
+  const firstUncompletedStep = roadmapSteps.find(s => !s.completed);
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20 md:pb-8">
@@ -168,7 +181,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-black/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Target Career Progress Bar - The Requested Feature */}
+      {/* Target Career Progress Bar */}
       {targetCareer && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 dark:border-gray-700 animate-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -181,7 +194,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                 </div>
                 <div className="flex items-center bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-xl">
                     <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mr-2">{journeyProgress}%</span>
-                    <span className="text-xs text-indigo-800 dark:text-indigo-300 font-medium uppercase tracking-wide">Ready</span>
+                    <span className="text-xs text-indigo-800 dark:text-indigo-300 font-medium uppercase tracking-wide">Overall Ready</span>
                 </div>
             </div>
             
@@ -195,19 +208,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
             
             {/* Steps Visualizer */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {journeySteps.map((step, idx) => (
-                    <div key={idx} className={`relative flex flex-col items-center p-4 rounded-xl border transition-all duration-300 ${step.completed ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/30' : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700/50 grayscale opacity-70'}`}>
-                        {step.completed && (
+                {journeySteps.map((step, idx) => {
+                   const isPartiallyDone = step.progress !== undefined && step.progress > 0 && step.progress < 1;
+                   const isFullyDone = step.progress === 1 || step.completed;
+                   return (
+                    <div key={idx} className={`relative flex flex-col items-center p-4 rounded-xl border transition-all duration-300 ${isFullyDone ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/30' : isPartiallyDone ? 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200' : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700/50 grayscale opacity-70'}`}>
+                        {isFullyDone && (
                             <div className="absolute top-2 right-2">
                                 <CheckCircle className="w-4 h-4 text-green-500" />
                             </div>
                         )}
-                        <div className={`p-3 rounded-full mb-3 ${step.completed ? 'bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'}`}>
+                        <div className={`p-3 rounded-full mb-3 ${isFullyDone ? 'bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm' : isPartiallyDone ? 'bg-white text-indigo-600 shadow-sm' : 'bg-gray-200 dark:bg-gray-700 text-gray-400'}`}>
                             <step.icon className="w-5 h-5" />
                         </div>
-                        <span className={`text-sm font-semibold text-center ${step.completed ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>{step.label}</span>
+                        <span className={`text-sm font-semibold text-center ${isFullyDone ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>{step.label}</span>
+                        {isPartiallyDone && <span className="text-[10px] font-bold text-indigo-500 uppercase mt-1">{Math.round(step.progress! * 100)}%</span>}
                     </div>
-                ))}
+                )})}
             </div>
         </div>
       )}
@@ -340,10 +357,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
 
         <StatusCard 
           title="Career Engine"
-          completed={hasRecommendations}
+          completed={hasRecommendationsSet}
           icon={Compass}
-          description={hasRecommendations ? `${userState.recommendations?.length} paths found.` : "Get AI career suggestions."}
-          actionLabel={hasRecommendations ? "View Paths" : "Get Recommendations"}
+          description={hasRecommendationsSet ? `${userState.recommendations?.length} paths found.` : "Get AI career suggestions."}
+          actionLabel={hasRecommendationsSet ? "View Paths" : "Get Recommendations"}
           onClick={() => onChangeView(AppView.CAREER_RECOMMENDER)}
           colorClass="text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400"
         />
@@ -352,7 +369,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
           title="Career Roadmap"
           completed={hasRoadmap}
           icon={User}
-          description={hasRoadmap ? `Target: ${userState.roadmap?.targetRole}` : "Plan your journey."}
+          // Fix: replaced completedCount with roadmapCompletedCount
+          description={hasRoadmap ? `Progress: ${roadmapCompletedCount}/${roadmapTotal} steps` : "Plan your journey."}
           actionLabel={hasRoadmap ? "View Roadmap" : "Create Plan"}
           onClick={() => onChangeView(AppView.ROADMAP)}
           colorClass="text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400"
@@ -408,13 +426,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                           <ArrowRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
                   )}
-                  {hasSkills && userState.roadmap && nextStep ? (
+                  {userState.roadmap && firstUncompletedStep ? (
                       <div className="p-5 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-900/30 text-green-900 dark:text-green-200">
                           <div className="flex items-center mb-2">
                              <CheckCircle className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-                             <span className="font-bold">Current Focus: {nextStep.title}</span>
+                             <span className="font-bold">Current Focus: {firstUncompletedStep.title}</span>
                           </div>
-                          <p className="text-sm opacity-90 mb-3">{nextStep.description}</p>
+                          <p className="text-sm opacity-90 mb-3">{firstUncompletedStep.description}</p>
                           <button 
                             onClick={() => onChangeView(AppView.ROADMAP)}
                             className="text-xs font-bold uppercase tracking-wider underline hover:text-green-700 dark:hover:text-green-300"
@@ -422,6 +440,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                               Open Roadmap
                           </button>
                       </div>
+                  ) : userState.roadmap && !firstUncompletedStep ? (
+                    <div className="p-5 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 text-indigo-900 dark:text-indigo-200">
+                        <div className="flex items-center mb-2">
+                           <Star className="w-5 h-5 mr-2 text-indigo-600 dark:text-indigo-400" />
+                           <span className="font-bold">Congratulations!</span>
+                        </div>
+                        <p className="text-sm opacity-90">You have completed all steps in your roadmap to becoming a {targetCareer}. You are career-ready!</p>
+                    </div>
                   ) : null}
               </div>
           </div>

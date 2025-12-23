@@ -40,12 +40,19 @@ export interface RoadmapStep {
   duration: string;
   resources: string[];
   actions?: string[];
+  completed?: boolean;
+  iconHint?: string;
+  // Advanced detailing
+  courses?: { platform: string; title: string; url: string }[];
+  books?: { title: string; author: string }[];
+  tutorials?: { title: string; url: string }[];
+  channels?: { platform: string; name: string; url: string }[];
 }
 
 export interface CareerRoadmap {
   targetRole: string;
   steps: RoadmapStep[];
-  type?: 'standard' | 'advanced';
+  type?: 'standard' | 'advanced' | 'visual';
 }
 
 export interface SkillGapAnalysis {

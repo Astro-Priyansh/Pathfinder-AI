@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { LayoutDashboard, Brain, Heart, TrendingUp, Map, User, FileText, Compass, Moon, Sun, Coffee, GraduationCap, Banknote } from 'lucide-react';
+import { LayoutDashboard, Brain, Heart, TrendingUp, Map, User, FileText, Compass, Moon, Sun, Coffee, GraduationCap, Banknote, MessageSquareQuote } from 'lucide-react';
 import { AppView } from '../types';
 
 interface SidebarProps {
@@ -8,9 +7,10 @@ interface SidebarProps {
   onChangeView: (view: AppView) => void;
   isDark: boolean;
   toggleTheme: () => void;
+  onOpenFeedback: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isDark, toggleTheme }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isDark, toggleTheme, onOpenFeedback }) => {
   const navItems = [
     { id: AppView.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
     { id: AppView.PERSONALITY, label: 'Personality Test', icon: Brain },
@@ -29,7 +29,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isD
       <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="relative w-10 h-10 flex items-center justify-center">
-            {/* Custom Pathfinder Logo */}
             <svg viewBox="0 0 24 24" className="w-10 h-10 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -60,7 +59,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isD
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-4">
+      <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
+        <button
+          onClick={onOpenFeedback}
+          className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium"
+        >
+          <MessageSquareQuote className="w-4 h-4" />
+          <span>Send Feedback</span>
+        </button>
+
         <button
           onClick={toggleTheme}
           className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -72,8 +79,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isD
         <div className="p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg shadow-indigo-200 dark:shadow-none">
           <h3 className="font-medium mb-1 font-brand">Unlock Pro</h3>
           <p className="text-xs text-indigo-100 mb-3">Get advanced insights and mentor matching.</p>
-          <button className="w-full py-1.5 px-3 bg-white/20 hover:bg-white/30 rounded text-sm transition-colors text-center backdrop-blur-sm">
-            Upgrade Now
+          <button className="w-full py-1.5 px-3 bg-white/20 rounded text-sm transition-colors text-center backdrop-blur-sm cursor-default" disabled>
+            Coming Soon...
           </button>
         </div>
       </div>

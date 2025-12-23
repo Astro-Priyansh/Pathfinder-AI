@@ -13,6 +13,7 @@ import { SalaryPredictor } from './components/SalaryPredictor';
 import { AuthWidget } from './components/AuthWidget';
 import { Chatbot } from './components/Chatbot';
 import { SplashScreen } from './components/SplashScreen';
+import { FeedbackModal } from './components/FeedbackModal';
 import { AppView, UserState, PersonalityResult, InterestAnalysis, CareerRoadmap, SkillGapAnalysis, ResumeData, CareerRecommendation, SkillProficiency, DailyRoutine, UserProfile, CollegeResult, SalaryInsights, ExercisePlan, DietPlan } from './types';
 import { Menu, X, Globe, ChevronDown } from 'lucide-react';
 
@@ -28,6 +29,7 @@ const App: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [showSplash, setShowSplash] = useState(true);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   
   // Application State
   const [userState, setUserState] = useState<UserState>({
@@ -282,6 +284,7 @@ const App: React.FC = () => {
               onChangeView={(view) => { setCurrentView(view); setMobileMenuOpen(false); }} 
               isDark={isDark}
               toggleTheme={toggleTheme}
+              onOpenFeedback={() => { setIsFeedbackOpen(true); setMobileMenuOpen(false); }}
            />
         </div>
 
@@ -326,6 +329,9 @@ const App: React.FC = () => {
 
         {/* Floating Chatbot */}
         <Chatbot />
+        
+        {/* Feedback Modal */}
+        <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       </div>
     </>
   );
