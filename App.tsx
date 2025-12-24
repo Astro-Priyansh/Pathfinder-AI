@@ -295,6 +295,7 @@ const App: React.FC = () => {
             existingPlan={userState.exercisePlan}
             existingDiet={userState.dietPlan}
             targetCareer={userState.targetCareer}
+            settings={userState.settings}
             onCompleteRoutine={(routine: DailyRoutine) => handleUpdateUser({ habitRoutine: routine })}
             onCompletePlan={(plan: ExercisePlan) => handleUpdateUser({ exercisePlan: plan })}
             onCompleteDiet={(plan: DietPlan) => handleUpdateUser({ dietPlan: plan })}
@@ -317,7 +318,6 @@ const App: React.FC = () => {
           />
         );
       case AppView.SETTINGS:
-        // Rendered as a global overlay below
         return null;
       default:
         return <Dashboard userState={userState} onChangeView={handleNavigate} />;
