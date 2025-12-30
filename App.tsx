@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { PersonalityTest } from './components/PersonalityTest';
@@ -329,6 +330,7 @@ const App: React.FC = () => {
       {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} userState={userState} themeColor={themePrimary} />}
       
       <div className={`flex h-screen font-sans text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200 ${showSplash ? 'hidden' : 'flex'}`}>
+        <SpeedInsights />
         <div className="md:hidden fixed top-0 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50 flex items-center justify-between p-4 transition-colors">
           <span className="font-bold text-lg font-brand" style={{ color: themePrimary }}>Pathfinder AI</span>
           <div className="flex items-center gap-3">
