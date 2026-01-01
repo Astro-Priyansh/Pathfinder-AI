@@ -17,8 +17,7 @@ import {
     BotPersonality
 } from "../types";
 
-// Initialize the Gemini API client with the requested environment variable
-// Fix: Use process.env.API_KEY instead of process.env.GEMINI_API_KEY as per guidelines
+// Initialize the Gemini API client with the correct environment variable
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MODEL_FLASH = 'gemini-3-flash-preview';
@@ -107,7 +106,6 @@ export const analyzePersonality = async (answers: { question: string; answer: st
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -143,7 +141,6 @@ export const analyzeInterests = async (input: string): Promise<InterestAnalysis 
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -171,7 +168,6 @@ export const getInterestDevelopmentTips = async (interest: string): Promise<Inte
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -209,7 +205,6 @@ export const generateRoadmap = async (currentRole: string, targetRole: string): 
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -252,7 +247,6 @@ export const generateAdvancedRoadmap = async (currentRole: string, targetRole: s
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -291,7 +285,6 @@ export const generateSimulationTurn = async (role: string, context: string, user
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -320,7 +313,6 @@ export const analyzeSkillGap = async (currentSkills: string, targetRole: string)
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -334,7 +326,6 @@ export const getSkillAdvice = async (skill: string, level: number): Promise<stri
             model: MODEL_FLASH,
             contents: prompt,
         });
-        // Fix: Use response.text property instead of method
         return response.text || "Keep practicing consistent projects in this area.";
     });
 };
@@ -349,7 +340,6 @@ export const optimizeResumeSection = async (sectionPrompt: string, text: string)
             model: MODEL_PRO,
             contents: prompt,
         });
-        // Fix: Use response.text property instead of method
         return response.text || text;
     });
 };
@@ -383,7 +373,6 @@ export const getCareerRecommendations = async (profile: string): Promise<CareerR
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, []);
     });
 };
@@ -435,7 +424,6 @@ export const getDailyRoutine = async (career: string): Promise<DailyRoutine | nu
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -487,7 +475,6 @@ export const getExercisePlan = async (goal: string): Promise<ExercisePlan | null
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -560,7 +547,6 @@ export const getDietPlan = async (bmi: number, routine: DailyRoutine, plan: Exer
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -609,7 +595,6 @@ export const findColleges = async (field: string, country: string): Promise<Coll
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -664,7 +649,6 @@ export const getSalaryInsights = async (role: string, location: string): Promise
                 }
             }
         });
-        // Fix: Use response.text property instead of method
         return parseJSON(response.text, null);
     });
 };
@@ -685,7 +669,6 @@ export const getChatResponse = async (history: ChatMessage[], message: string, p
         });
         
         const response = await chat.sendMessage({ message });
-        // Fix: Use response.text property instead of method
         return response.text || "I'm having trouble connecting right now. How else can I help you?";
     });
 };
