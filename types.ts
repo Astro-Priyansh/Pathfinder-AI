@@ -365,3 +365,11 @@ export interface PersonalizedCollegeResult {
   analysisOverview?: string;
 }
 
+export interface InDemandIndustry {
+  name: string;
+  reason: string;
+  growthRate: string;
+  topJobs: string[];
+}
+
+

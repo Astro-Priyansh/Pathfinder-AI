@@ -1,21 +1,22 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Minimize2, Maximize2, Loader2, Bot, Trash2, GripHorizontal } from 'lucide-react';
-import { ChatMessage, UserSettings } from '../types';
+import { ChatMessage, UserSettings, UserState } from '../types';
 import { getChatResponse } from '../services/gemini';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ChatbotProps {
     settings?: UserSettings;
     themeColor?: string;
+    userState?: UserState;
 }
 
-export const Chatbot: React.FC<ChatbotProps> = ({ settings, themeColor = '#4f46e5' }) => {
+export const Chatbot: React.FC<ChatbotProps> = ({ settings, themeColor = '#4f46e5', userState }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      text: "Hi! I'm Pathfinder AI. How can I help you with your career journey today?",
+      text: "Hi! I'm Pathfinder AI, your dedicated Career Mentor. Ask me any career, job, roadmap, or learning gaps question, and I'll coach you based on your tailored profiles!",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -35,7 +36,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ settings, themeColor = '#4f46e
   }, [messages, isOpen]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -49,7 +50,52 @@ export const Chatbot: React.FC<ChatbotProps> = ({ settings, themeColor = '#4f46e
     setLoading(true);
 
     try {
-      const responseText = await getChatResponse(messages, input, settings?.botPersonality);
+      const responseText = await getChatResponse(
+        [...messages, userMsg],
+        input,
+        settings?.botPersonality,
+        userState?.roadmap,
+        userState?.skillGap,
+        userState?.targetCareer
+      );
+      
+      const botMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: responseText,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, botMsg]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSuggestionSubmit = async (text: string) => {
+    if (loading) return;
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      text: text,
+      sender: 'user',
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
+
+    try {
+      const responseText = await getChatResponse(
+        [...messages, userMsg],
+        text,
+        settings?.botPersonality,
+        userState?.roadmap,
+        userState?.skillGap,
+        userState?.targetCareer
+      );
       
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -69,7 +115,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ settings, themeColor = '#4f46e
   const handleClearChat = () => {
     setMessages([{
         id: Date.now().toString(),
-        text: "Hi! I'm Pathfinder AI. How can I help you with your career journey today?",
+        text: "Hi! I'm Pathfinder AI, your dedicated Career Mentor. Ask me any career, job, roadmap, or learning gaps question, and I'll coach you based on your tailored profiles!",
         sender: 'bot',
         timestamp: new Date()
     }]);
@@ -81,6 +127,15 @@ export const Chatbot: React.FC<ChatbotProps> = ({ settings, themeColor = '#4f46e
       handleSend();
     }
   };
+
+  // Dedicated dynamic Career mentoring suggestion helper prompts
+  const mentorSuggestions = [
+    { text: "🔬 Tell me about my skill gaps & matching score", condition: !!userState?.skillGap },
+    { text: "📈 Walk me through my next Career Roadmap step", condition: !!userState?.roadmap },
+    { text: "💡 Suggest realistic projects to close my gaps", condition: !!userState?.skillGap },
+    { text: "🏫 Review my current roadmap milestones", condition: !!userState?.roadmap },
+    { text: "🎓 Give me general 'Career Mentor' advice", condition: true }
+  ].filter(s => s.condition);
 
   return (
     <>
@@ -221,6 +276,27 @@ export const Chatbot: React.FC<ChatbotProps> = ({ settings, themeColor = '#4f46e
               )}
               <div ref={messagesEndRef} />
             </div>
+
+            {/* Career Mentor Quick Suggestions Pills */}
+            {mentorSuggestions.length > 0 && (
+              <div 
+                id="career-mentor-suggestions-wrapper" 
+                className="px-4 pb-2 flex gap-1.5 overflow-x-auto relative z-10 shrink-0 scroll-smooth"
+                style={{ scrollbarWidth: 'none' }}
+              >
+                {mentorSuggestions.map((s, idx) => (
+                  <button
+                    key={idx}
+                    id={`mentor-suggest-pill-${idx}`}
+                    onClick={() => handleSuggestionSubmit(s.text)}
+                    disabled={loading}
+                    className="flex-none bg-white/50 dark:bg-black/50 hover:bg-white/80 dark:hover:bg-black/80 text-[11px] font-medium px-3 py-1.5 rounded-full border border-white/60 dark:border-white/20 text-gray-800 dark:text-gray-200 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {s.text}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Input Area */}
             <div className="p-4 relative z-10 rounded-b-[inherit]">

@@ -17,7 +17,8 @@ import {
     BotPersonality,
     ProjectIdea,
     PersonalizedCollegeQueryParams,
-    PersonalizedCollegeResult
+    PersonalizedCollegeResult,
+    InDemandIndustry
 } from "../types";
 
 // Initialize the Gemini API client with the correct environment variable
@@ -1175,13 +1176,49 @@ export const analyzeCFPBudget = async (payload: {
 };
 
 // Get a context-aware chat response
-export const getChatResponse = async (history: ChatMessage[], message: string, personality?: BotPersonality): Promise<string> => {
+export const getChatResponse = async (
+    history: ChatMessage[], 
+    message: string, 
+    personality?: BotPersonality,
+    roadmap?: CareerRoadmap | null,
+    skillGap?: SkillGapAnalysis | null,
+    targetCareer?: string | null
+): Promise<string> => {
     return withRetry(async () => {
         const ai = getAI();
+        
+        let customSystemInstruction = `You are Pathfinder AI, a professional career coach and AI assistant with a ${personality || 'guide'} personality. Help the user with their career path, resume, skills, or lifestyle optimization.`;
+        
+        if (roadmap || skillGap || targetCareer) {
+            customSystemInstruction = `You are Pathfinder AI, an elite, compassionate, and highly strategic Career Mentor and executive coach. 
+Your goal is to guide the user towards success in their career journey by providing highly customized, accurate, and deeply insightful 'Career Mentor' advice. 
+Currently, you have the following background data about the user to make your guidance extremely specific:
+
+${targetCareer ? `- **Target Career Focus**: "${targetCareer}"` : ''}
+
+${roadmap ? `### Stored Career Roadmap:
+- **Target Role**: ${roadmap.targetRole}
+- **Steps**:
+${roadmap.steps.map((s, idx) => `  ${idx + 1}. [${s.completed ? 'Completed' : 'Planned'}] ${s.title} (${s.duration || 'Flexible'}): ${s.description}${s.resources?.length ? ` (Recommended Resources: ${s.resources.join(', ')})` : ''}`).join('\n')}` : ''}
+
+${skillGap ? `### Stored Skill Gap & Proficiency Profile:
+- **Match Score** with target role: ${skillGap.matchScore}%
+- **Missing/Required Skills** (Priority to learn): ${skillGap.missingSkills && skillGap.missingSkills.length > 0 ? skillGap.missingSkills.join(', ') : 'None identified'}
+- **Mastered Skills**: ${skillGap.masteredSkills && skillGap.masteredSkills.length > 0 ? skillGap.masteredSkills.join(', ') : 'None identified'}
+- **Development Recommendations**:
+${skillGap.recommendations && skillGap.recommendations.length > 0 ? skillGap.recommendations.map(r => `  • ${r}`).join('\n') : '  • No specific recommendations generated yet.'}` : ''}
+
+### Mentoring Guidelines:
+1. **Persona**: Be an empathetic, supportive, practical, and highly skilled mentor. Speak clearly, concisely, and with professional composure. Use standard, humble, formatting and helpful bullet points.
+2. **Contextual Awareness**: Whenever the user asks for mentor advice, checks in about their roadmap steps, or asks how to close their skill gaps, reference their stored roadmap and skill gaps seamlessly.
+3. **Actionability**: Formulate step-by-step small habits, key resources, and custom projects they could do to build skills.
+4. **Always Ready**: Even if they ask broad questions, gently tie your answers back to how it helps them achieve their targeted milestone (such as completing Step ${(roadmap?.steps || []).findIndex(s => !s.completed) + 1 || 1} in their roadmap, or mastering one of their missing skills).`;
+        }
+
         const chat = ai.chats.create({
             model: MODEL_FLASH,
             config: {
-                systemInstruction: `You are Pathfinder AI, a career assistant with a ${personality || 'guide'} personality. Help the user with their career path, resume, skills, or lifestyle optimization.`,
+                systemInstruction: customSystemInstruction,
             },
             history: history.map(m => ({
                 role: m.sender === 'user' ? 'user' : 'model',
@@ -1193,3 +1230,32 @@ export const getChatResponse = async (history: ChatMessage[], message: string, p
         return response.text || "I'm having trouble connecting right now. How else can I help you?";
     });
 };
+
+export const getInDemandIndustry = async (country: string): Promise<InDemandIndustry | null> => {
+    return withRetry(async () => {
+        const ai = getAI();
+        const prompt = `Identify the most in-demand industry currently in "${country}". 
+        Provide the name of the industry, a brief reason why it is highly in-demand, its projected growth rate, and 3-4 top job roles within that industry. Return JSON.`;
+
+        const response = await ai.models.generateContent({
+            model: MODEL_FLASH,
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        name: { type: Type.STRING },
+                        reason: { type: Type.STRING },
+                        growthRate: { type: Type.STRING },
+                        topJobs: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    },
+                    required: ["name", "reason", "growthRate", "topJobs"]
+                }
+            }
+        });
+        return parseJSON(response.text, null);
+    });
+};
+

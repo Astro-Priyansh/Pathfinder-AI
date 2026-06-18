@@ -803,7 +803,7 @@ const App: React.FC = () => {
             </div>
         </main>
 
-        <Chatbot settings={userState.settings} themeColor={themePrimary} />
+        <Chatbot settings={userState.settings} themeColor={themePrimary} userState={userState} />
         
         <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} themeColor={themePrimary} />
 
