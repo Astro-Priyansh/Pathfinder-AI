@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { PersonalityResult } from '../types';
 import { analyzePersonality } from '../services/gemini';
-import { Loader2, RefreshCcw, ArrowRight, ArrowLeft, Check, Star, Briefcase, Brain, Activity } from 'lucide-react';
+import { Loader2, RefreshCcw, ArrowRight, ArrowLeft, Check, Star, Briefcase, Brain, Activity, AlertTriangle, MessageCircle } from 'lucide-react';
 
 interface PersonalityTestProps {
   onComplete: (result: PersonalityResult) => void;
@@ -40,6 +40,22 @@ const QUESTIONS = [
   "I worry about things.",
   "I get stressed out easily.",
   "I am relaxed most of the time.",
+
+  // MBTI - Extraversion vs Introversion
+  "I gain energy from being around others.",
+  "I prefer small gatherings over large parties.",
+
+  // MBTI - Sensing vs Intuition
+  "I focus more on facts than theories.",
+  "I like to imagine future possibilities.",
+
+  // MBTI - Thinking vs Feeling
+  "I prioritize logic over emotions in decisions.",
+  "I am very sensitive to the feelings of others.",
+
+  // MBTI - Judging vs Perceiving
+  "I like to have a clear plan for my day.",
+  "I prefer to keep my options open and be spontaneous.",
   
   // Additional Work Style
   "I prefer working in a team rather than alone.",
@@ -133,68 +149,121 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete, ex
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Chart Section */}
-          <div className="lg:col-span-5 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 h-[450px] flex flex-col">
-             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 text-center">Trait Analysis</h3>
-            <div className="flex-1 w-full h-full min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={localResult.traits || []}>
-                    <PolarGrid stroke="#9ca3af" opacity={0.3} />
-                    <PolarAngleAxis dataKey="trait" tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                    <Radar name="Score" dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.6} />
-                    <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff', borderRadius: '12px' }} />
-                </RadarChart>
-                </ResponsiveContainer>
+        <div className="flex flex-col gap-8">
+          {/* Top Row: Executive Summary & MBTI */}
+          <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex-1 bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-3xl border border-indigo-100 dark:border-indigo-900/30">
+                  <h3 className="font-bold text-xl mb-3 flex items-center text-indigo-900 dark:text-indigo-200">
+                      <Star className="w-6 h-6 mr-2 text-indigo-500" /> Executive Summary
+                  </h3>
+                  <p className="leading-relaxed text-indigo-800 dark:text-indigo-300 text-lg">{localResult.summary}</p>
+              </div>
+              
+              {localResult.mbti && (
+                  <div className="sm:w-48 bg-gradient-to-br from-purple-600 to-indigo-700 p-6 rounded-3xl text-white shadow-lg flex flex-col items-center justify-center text-center">
+                      <span className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">MBTI Type</span>
+                      <span className="text-5xl font-black font-brand tracking-tighter">{localResult.mbti}</span>
+                      <div className="mt-4 px-3 py-1 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                          Neural Match
+                      </div>
+                  </div>
+              )}
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Radar Chart */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 h-[350px] flex flex-col">
+               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 text-center">Trait Balance</h3>
+              <div className="flex-1 w-full h-full min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={localResult.traits || []}>
+                      <PolarGrid stroke="#9ca3af" opacity={0.3} />
+                      <PolarAngleAxis dataKey="trait" tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                      <Radar name="Score" dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.6} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff', borderRadius: '12px' }} />
+                  </RadarChart>
+                  </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Bar Chart */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 h-[350px] flex flex-col">
+               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 text-center">Trait Intensity</h3>
+              <div className="flex-1 w-full h-full min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={localResult.traits || []} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#374151" opacity={0.2} />
+                          <XAxis type="number" domain={[0, 100]} hide />
+                          <YAxis dataKey="trait" type="category" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }} />
+                          <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff', borderRadius: '12px' }} />
+                          <Bar dataKey="score" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20} />
+                      </BarChart>
+                  </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
-          {/* Results Details */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-3xl border border-indigo-100 dark:border-indigo-900/30">
-              <h3 className="font-bold text-xl mb-3 flex items-center text-indigo-900 dark:text-indigo-200">
-                  <Star className="w-6 h-6 mr-2 text-indigo-500" /> Executive Summary
-              </h3>
-              <p className="leading-relaxed text-indigo-800 dark:text-indigo-300 text-lg">{localResult.summary}</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center text-lg">
-                        <Check className="w-5 h-5 mr-2 text-emerald-500" /> Core Strengths
-                    </h3>
-                    <ul className="space-y-3">
-                        {(localResult.strengths || ["Detailed Oriented", "Creative", "Reliable"]).map((str, i) => (
-                            <li key={i} className="flex items-center text-sm text-gray-700 dark:text-gray-300 font-medium">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500 mr-3"></div>
-                                {str}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center text-lg">
-                        <Briefcase className="w-5 h-5 mr-2 text-blue-500" /> Work Style
-                    </h3>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
-                        {localResult.workStyle || "Prefers structured environments with clear goals."}
-                    </p>
-                </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-              <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center text-lg">
-                  <Activity className="w-5 h-5 mr-2 text-purple-500" /> Suggested Careers
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {(localResult.suggestedCareers || []).map((career, idx) => (
-                  <span key={idx} className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 rounded-xl text-purple-700 dark:text-purple-300 text-sm font-bold shadow-sm">
-                    {career}
-                  </span>
-                ))}
+          {/* Results Details Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center text-lg">
+                      <Check className="w-5 h-5 mr-2 text-emerald-500" /> Core Strengths
+                  </h3>
+                  <ul className="space-y-3">
+                      {(localResult.strengths || ["Detailed Oriented", "Creative", "Reliable"]).map((str, i) => (
+                          <li key={i} className="flex items-center text-sm text-gray-700 dark:text-gray-300 font-medium">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500 mr-3 shrink-0"></div>
+                              {str}
+                          </li>
+                      ))}
+                  </ul>
               </div>
+
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center text-lg">
+                      <AlertTriangle className="w-5 h-5 mr-2 text-rose-500" /> Potential Weaknesses
+                  </h3>
+                  <ul className="space-y-3">
+                      {(localResult.weaknesses || ["Can be overly critical", "May struggle with routine"]).map((str, i) => (
+                          <li key={i} className="flex items-center text-sm text-gray-700 dark:text-gray-300 font-medium">
+                              <div className="w-2 h-2 rounded-full bg-rose-500 mr-3 shrink-0"></div>
+                              {str}
+                          </li>
+                      ))}
+                  </ul>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center text-lg">
+                      <Briefcase className="w-5 h-5 mr-2 text-blue-500" /> Work Style
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                      {localResult.workStyle || "Prefers structured environments with clear goals."}
+                  </p>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center text-lg">
+                      <MessageCircle className="w-5 h-5 mr-2 text-amber-500" /> Interaction Style
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                      {localResult.interactionStyle || "Direct and task-oriented in professional settings."}
+                  </p>
+              </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center text-lg">
+                <Activity className="w-5 h-5 mr-2 text-purple-500" /> Suggested Careers
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {(localResult.suggestedCareers || []).map((career, idx) => (
+                <span key={idx} className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 rounded-xl text-purple-700 dark:text-purple-300 text-sm font-bold shadow-sm">
+                  {career}
+                </span>
+              ))}
             </div>
           </div>
         </div>

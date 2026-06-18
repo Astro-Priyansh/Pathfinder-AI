@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { UserState, CareerRecommendation } from '../types';
 import { getCareerRecommendations } from '../services/gemini';
-import { Loader2, Sparkles, TrendingUp, DollarSign, Search, Briefcase, Target, Compass, CheckCircle2 } from 'lucide-react';
+import { Loader2, Sparkles, TrendingUp, DollarSign, Search, Briefcase, Target, Compass, CheckCircle2, Plus, Check, X } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
+import { SalaryGrowthChart } from './SalaryGrowthChart';
+import { CareerComparison } from './CareerComparison';
 
 interface CareerRecommenderProps {
   userState: UserState;
@@ -15,11 +17,28 @@ interface CareerRecommenderProps {
 export const CareerRecommender: React.FC<CareerRecommenderProps> = ({ userState, onUpdate, onSetTarget, country }) => {
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<CareerRecommendation[]>(userState.recommendations || []);
+  const [activeChartIndex, setActiveChartIndex] = useState<number | null>(null);
+  const [comparedTitles, setComparedTitles] = useState<string[]>([]);
+  const [showCompareOverview, setShowCompareOverview] = useState(false);
+
+  const toggleCompare = (title: string) => {
+    setComparedTitles((prev) => {
+      if (prev.includes(title)) {
+        return prev.filter((t) => t !== title);
+      }
+      if (prev.length >= 2) {
+        // Swap or replace the 2nd one to enforce a max size of 2
+        return [prev[0], title];
+      }
+      return [...prev, title];
+    });
+  };
 
   const canGenerate = userState.personalityResult || userState.interestAnalysis || userState.skillGap;
 
   const handleGenerate = async () => {
     setLoading(true);
+    setActiveChartIndex(null);
     try {
       // Aggregate profile data
       const profile = `
@@ -38,6 +57,50 @@ export const CareerRecommender: React.FC<CareerRecommenderProps> = ({ userState,
     } finally {
       setLoading(false);
     }
+  };
+
+  const getProjections = (rec: CareerRecommendation) => {
+    if (rec.salaryProjections && rec.salaryProjections.length > 0) {
+      return rec.salaryProjections;
+    }
+    
+    // Fallback parser if not returned by older structure cached in localstorage
+    let baseMin = 65000;
+    let baseMax = 110000;
+    
+    try {
+      const numbers = rec.salaryRange.match(/\d[\d,.]*/g);
+      if (numbers && numbers.length >= 2) {
+        baseMin = parseInt(numbers[0].replace(/,/g, '')) || 65000;
+        baseMax = parseInt(numbers[1].replace(/,/g, '')) || 110000;
+      } else if (numbers && numbers.length === 1) {
+        baseMin = parseInt(numbers[0].replace(/,/g, '')) || 65000;
+        baseMax = baseMin * 1.6;
+      }
+    } catch (e) {
+      console.error("Error parsing salary: ", e);
+    }
+
+    const result = [];
+    const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
+    let currentVal = baseMin;
+    const growthRate = (baseMax - baseMin) / 4 || currentVal * 0.12;
+
+    for (let idx = 0; idx < 5; idx++) {
+      result.push({
+        year: years[idx],
+        salary: Math.round(currentVal)
+      });
+      currentVal = currentVal + growthRate * (0.90 + Math.random() * 0.2);
+    }
+    return result;
+  };
+
+  const getCurrencySymbol = (range: string) => {
+    if (range.includes('₹') || range.includes('Rs') || range.includes('INR')) return '₹';
+    if (range.includes('£') || range.includes('GBP')) return '£';
+    if (range.includes('€') || range.includes('EUR')) return '€';
+    return '$';
   };
 
   return (
@@ -110,17 +173,47 @@ export const CareerRecommender: React.FC<CareerRecommenderProps> = ({ userState,
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end">
-                                <span className="text-2xl font-bold text-pink-600 dark:text-pink-400">
-                                    {rec.matchScore}%
-                                </span>
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Match</span>
+                            <div className="flex flex-col items-end gap-2.5">
+                                <div className="flex flex-col items-end leading-none">
+                                    <span className="text-2xl font-black text-pink-600 dark:text-pink-400">
+                                        {rec.matchScore}%
+                                    </span>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Match</span>
+                                </div>
+                                <button
+                                    onClick={() => toggleCompare(rec.title)}
+                                    className={`px-3 py-1 text-[10px] font-black uppercase rounded-lg border transition-all duration-200 flex items-center justify-center gap-1
+                                        ${comparedTitles.includes(rec.title)
+                                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                                            : 'bg-transparent border-gray-200 text-gray-500 hover:border-indigo-400 hover:text-indigo-600 dark:border-gray-700 dark:text-gray-400 dark:hover:border-indigo-500 dark:hover:text-indigo-400'
+                                        }`}
+                                >
+                                    {comparedTitles.includes(rec.title) ? (
+                                        <>
+                                            <Check className="w-3 h-3" /> Selected
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="w-3 h-3" /> Compare
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
                         
                         <p className="text-gray-700 dark:text-gray-300 text-sm mb-5 leading-relaxed bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl">
                             {rec.reason}
                         </p>
+
+                        {activeChartIndex === i && (
+                            <div className="mb-5 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <SalaryGrowthChart 
+                                    projections={getProjections(rec)} 
+                                    currencySymbol={getCurrencySymbol(rec.salaryRange)}
+                                    themeColor={['#db2777', '#9333ea', '#7c3aed', '#4f46e5', '#2563eb'][i % 5]}
+                                />
+                            </div>
+                        )}
                         
                         <div className="flex flex-col sm:flex-row justify-between items-end sm:items-center gap-4 border-t border-gray-100 dark:border-gray-700 pt-4">
                             {rec.jobRoles && rec.jobRoles.length > 0 && (
@@ -136,23 +229,97 @@ export const CareerRecommender: React.FC<CareerRecommenderProps> = ({ userState,
                                 </div>
                             )}
                             
-                            <button 
-                                onClick={() => onSetTarget(rec.title)}
-                                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center whitespace-nowrap
-                                    ${userState.targetCareer === rec.title 
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 cursor-default'
-                                        : 'bg-pink-50 text-pink-600 hover:bg-pink-100 dark:bg-pink-900/20 dark:text-pink-400 dark:hover:bg-pink-900/40'
-                                    }`}
-                            >
-                                {userState.targetCareer === rec.title ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Target className="w-4 h-4 mr-2" />}
-                                {userState.targetCareer === rec.title ? 'Selected Goal' : 'Set as Goal'}
-                            </button>
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                <button 
+                                    onClick={() => setActiveChartIndex(activeChartIndex === i ? null : i)}
+                                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 whitespace-nowrap
+                                        ${activeChartIndex === i 
+                                            ? 'bg-pink-600 text-white shadow-lg shadow-pink-100 dark:shadow-none' 
+                                            : 'bg-pink-50 text-pink-600 hover:bg-pink-100 dark:bg-pink-900/20 dark:text-pink-400 dark:hover:bg-pink-900/40'
+                                        }`}
+                                >
+                                    <TrendingUp className="w-4 h-4" />
+                                    {activeChartIndex === i ? 'Hide Growth' : 'Salary Growth'}
+                                </button>
+                                
+                                <button 
+                                    onClick={() => onSetTarget(rec.title)}
+                                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center whitespace-nowrap
+                                        ${userState.targetCareer === rec.title 
+                                            ? 'bg-emerald-600 text-white cursor-default shadow-lg shadow-emerald-100 dark:shadow-none'
+                                            : 'bg-gray-150 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                                        }`}
+                                >
+                                    {userState.targetCareer === rec.title ? <CheckCircle2 className="w-4 h-4 mr-1.5" /> : <Target className="w-4 h-4 mr-1.5" />}
+                                    {userState.targetCareer === rec.title ? 'Goal Set' : 'Set as Goal'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
             </div>
         </div>
       )}
+
+      {/* Floating Sticky comparison bar */}
+      {comparedTitles.length > 0 && (
+          <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-8 bg-gray-900/95 dark:bg-gray-950/95 backdrop-blur-md text-white px-5 py-4 rounded-3xl shadow-2xl border border-gray-800/85 z-40 max-w-sm w-full animate-in slide-in-from-bottom-5 duration-300 flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                  <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-black tracking-widest text-pink-400">Path Comparison Desk</span>
+                      <span className="text-xs font-bold text-gray-200 mt-0.5">
+                          {comparedTitles.length === 1 
+                            ? `Selected: ${comparedTitles[0]}` 
+                            : `${comparedTitles[0]} vs ${comparedTitles[1]}`}
+                      </span>
+                  </div>
+                  <button
+                      onClick={() => setComparedTitles([])}
+                      className="p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+                  >
+                      <X className="w-3.5 h-3.5" />
+                  </button>
+              </div>
+              <div className="flex gap-2">
+                  <button 
+                      onClick={() => {
+                        if (comparedTitles.length === 2) {
+                            setShowCompareOverview(true);
+                        } else {
+                            // Find another candidate to auto-populate if only 1 is selected
+                            const other = recommendations.find(r => r.title !== comparedTitles[0]);
+                            if (other) {
+                                setComparedTitles([...comparedTitles, other.title]);
+                                setShowCompareOverview(true);
+                            }
+                        }
+                      }}
+                      className="flex-1 py-2.5 bg-gradient-to-r from-pink-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition duration-150 text-center shadow-lg shadow-pink-900/30"
+                  >
+                      {comparedTitles.length === 2 ? "Compare Side-By-Side" : "Auto-Compare & Open"}
+                  </button>
+              </div>
+          </div>
+      )}
+
+      {/* Career Side-by-Side Comparison Modal Sheet */}
+      {showCompareOverview && comparedTitles.length === 2 && (() => {
+         const selection = recommendations.filter(r => comparedTitles.includes(r.title));
+         if (selection.length === 2) {
+             return (
+                 <CareerComparison 
+                     careerA={selection[0]} 
+                     careerB={selection[1]} 
+                     userState={userState} 
+                     onClose={() => setShowCompareOverview(false)}
+                     onSelectGoal={(title) => {
+                         onSetTarget(title);
+                     }}
+                 />
+             );
+         }
+         return null;
+      })()}
     </div>
   );
 };

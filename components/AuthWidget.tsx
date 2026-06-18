@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { UserProfile } from '../types';
 import { User, LogIn, LogOut, Settings, Trash2, Camera, Upload, Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
 
@@ -10,15 +11,17 @@ interface AuthWidgetProps {
   onDeleteAccount: () => void;
   onUpdateProfile: (updates: Partial<UserProfile>) => void;
   themeColor?: string;
+  isDark?: boolean;
 }
 
-export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, onLogout, onDeleteAccount, onUpdateProfile, themeColor = '#4f46e5' }) => {
+export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, onLogout, onDeleteAccount, onUpdateProfile, themeColor = '#4f46e5', isDark = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [view, setView] = useState<'menu' | 'login' | 'signup' | 'profile'>('menu');
   const [formData, setFormData] = useState<Partial<UserProfile>>({ username: '', password: '', email: '', avatarUrl: '', firstName: '', lastName: '' });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -200,119 +203,186 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
     return (
       <div className="relative" ref={menuRef}>
         <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded hidden md:inline-block uppercase tracking-widest">Guest</span>
+            <span className="text-[10px] font-black text-gray-400 bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 px-2.5 py-1.5 rounded-xl hidden md:inline-block uppercase tracking-widest">Guest</span>
             <button 
                 onClick={() => openModal('login')} 
-                className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition"
+                className="px-4 py-2.5 text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition"
             >
                 Log In
             </button>
             <button 
                 onClick={() => openModal('signup')} 
-                className="px-4 py-2 text-sm font-bold text-white rounded-xl transition shadow-lg hover:scale-105 transform duration-200"
+                className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white rounded-xl transition shadow-xl hover:scale-105 active:scale-95 transform duration-200 group relative overflow-hidden"
                 style={{ backgroundColor: themeColor }}
             >
-                Sign Up
+                <span className="relative z-10">Sign Up</span>
+                <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
             </button>
         </div>
 
+        <AnimatePresence>
         {isOpen && (
-            <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 z-50 p-6 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 font-brand tracking-tight">
-                    {view === 'login' ? 'Welcome Back' : 'Join Pathfinder'}
-                </h3>
-                
-                <form onSubmit={view === 'login' ? handleLogin : handleSignUp} className="space-y-4">
-                    {view === 'signup' && (
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">First Name</label>
-                                <input 
-                                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none text-sm"
-                                    style={{'--tw-ring-color': themeColor} as React.CSSProperties}
-                                    value={formData.firstName}
-                                    onChange={e => setFormData({...formData, firstName: e.target.value})}
-                                    placeholder="John"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Last Name</label>
-                                <input 
-                                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none text-sm"
-                                    style={{'--tw-ring-color': themeColor} as React.CSSProperties}
-                                    value={formData.lastName}
-                                    onChange={e => setFormData({...formData, lastName: e.target.value})}
-                                    placeholder="Doe"
-                                />
-                            </div>
-                        </div>
-                    )}
-                    <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Username (No Spaces)</label>
-                        <input 
-                            type="text" 
-                            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none transition font-medium"
-                            style={{'--tw-ring-color': themeColor} as React.CSSProperties}
-                            value={formData.username}
-                            onChange={e => setFormData({...formData, username: e.target.value.replace(/\s/g, '')})}
-                            placeholder="johndoe"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Password (No Spaces)</label>
-                        <div className="relative">
-                            <input 
-                                type={showPassword ? "text" : "password"}
-                                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none transition pr-10 font-medium"
-                                style={{'--tw-ring-color': themeColor} as React.CSSProperties}
-                                value={formData.password}
-                                onChange={e => setFormData({...formData, password: e.target.value.replace(/\s/g, '')})}
-                                placeholder="••••••••"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                        </div>
-                        {view === 'signup' && formData.password && (
-                            <div className="mt-3">
-                                <div className="flex justify-between items-center mb-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                                    <span>Security</span>
-                                    <span className={strength.label === 'Weak' ? 'text-rose-500' : strength.label === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}>{strength.label}</span>
-                                </div>
-                                <div className="flex gap-1 h-1">
-                                    {[0, 1, 2, 3].map((i) => (
-                                        <div key={i} className={`flex-1 rounded-full ${i < strength.score ? strength.color : 'bg-gray-200 dark:bg-gray-700'}`}></div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    
-                    {error && <p className="text-rose-500 text-[10px] font-bold uppercase tracking-widest bg-rose-50 dark:bg-rose-900/10 p-2 rounded-lg text-center">{error}</p>}
-                    
-                    <button 
-                        type="submit" 
-                        disabled={loading}
-                        className="w-full py-3 text-white font-black uppercase tracking-widest text-xs rounded-xl transition flex justify-center items-center shadow-lg"
-                        style={{ backgroundColor: themeColor }}
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(10px)' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="absolute right-0 mt-4 w-80 overflow-hidden rounded-[2.5rem] shadow-2xl border border-white/20 dark:border-white/10 z-50 origin-top-right"
+            >
+                {/* Futuristic Glass Background - Matching FeedbackModal */}
+                <div className={`absolute inset-0 z-0 backdrop-blur-3xl transition-colors duration-500 ${isDark ? 'bg-gray-950 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'bg-white/95 shadow-2xl'}`}></div>
+                <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[60px] opacity-20 animate-pulse" style={{ backgroundColor: themeColor }}></div>
+                <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full blur-[60px] opacity-10 animate-pulse" style={{ backgroundColor: themeColor }}></div>
+
+                <div className="relative z-10">
+                    {/* Refined Header - Like FeedbackModal */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="p-8 pb-4 flex justify-between items-start"
                     >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (view === 'login' ? 'Log In' : 'Create Account')}
-                    </button>
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-2xl shadow-lg flex items-center justify-center" style={{ backgroundColor: `${themeColor}22`, color: themeColor }}>
+                                    {view === 'login' ? <LogIn className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
+                                </div>
+                                <h3 className="text-2xl font-bold font-brand tracking-tight text-gray-900 dark:text-white">
+                                    {view === 'login' ? 'Welcome Back' : 'Join Pathfinder'}
+                                </h3>
+                            </div>
+                            <p className="text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-widest ml-1">
+                                {view === 'login' ? 'Initialize your session' : 'Create your neural identity'}
+                            </p>
+                        </div>
+                    </motion.div>
                     
-                    <div className="text-center text-xs text-gray-500 dark:text-gray-400 mt-2 font-bold uppercase tracking-widest">
-                        {view === 'login' ? (
-                            <p>New? <button type="button" onClick={() => setView('signup')} className="hover:underline" style={{ color: themeColor }}>Create identity</button></p>
-                        ) : (
-                            <p>Active? <button type="button" onClick={() => setView('login')} className="hover:underline" style={{ color: themeColor }}>Log in</button></p>
-                        )}
+                    <div className="p-8 pt-2">
+                        <form onSubmit={view === 'login' ? handleLogin : handleSignUp} className="space-y-5">
+                            {view === 'signup' && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="grid grid-cols-2 gap-3"
+                                >
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2 ml-1">First Name</label>
+                                        <input 
+                                            className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none text-sm transition focus:ring-4 text-gray-900 dark:text-white font-medium placeholder-gray-400 dark:placeholder-gray-600"
+                                            style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties}
+                                            value={formData.firstName}
+                                            onChange={e => setFormData({...formData, firstName: e.target.value})}
+                                            placeholder="John"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2 ml-1">Last Name</label>
+                                        <input 
+                                            className="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none text-sm transition focus:ring-4 text-gray-900 dark:text-white font-medium placeholder-gray-400 dark:placeholder-gray-600"
+                                            style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties}
+                                            value={formData.lastName}
+                                            onChange={e => setFormData({...formData, lastName: e.target.value})}
+                                            placeholder="Doe"
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.25 }}
+                            >
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2 ml-1">Username</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full px-4 py-3 bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none transition font-semibold focus:ring-4 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600"
+                                    style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties}
+                                    value={formData.username}
+                                    onChange={e => setFormData({...formData, username: e.target.value.replace(/\s/g, '')})}
+                                    placeholder="johndoe"
+                                />
+                            </motion.div>
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                            >
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2 ml-1">Password</label>
+                                <div className="relative">
+                                    <input 
+                                        type={showPassword ? "text" : "password"}
+                                        className="w-full px-4 py-3 bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none transition pr-10 font-semibold focus:ring-4 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600"
+                                        style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties}
+                                        value={formData.password}
+                                        onChange={e => setFormData({...formData, password: e.target.value.replace(/\s/g, '')})}
+                                        placeholder="••••••••"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                                {view === 'signup' && formData.password && (
+                                    <div className="mt-4">
+                                        <div className="flex justify-between items-center mb-2 text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-gray-300">
+                                            <span>Security</span>
+                                            <span className={strength.label === 'Weak' ? 'text-rose-500' : strength.label === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}>{strength.label}</span>
+                                        </div>
+                                        <div className="flex gap-1.5 h-1">
+                                            {[0, 1, 2, 3].map((i) => (
+                                                <div key={i} className={`flex-1 rounded-full transition-all duration-500 ${i < strength.score ? strength.color : 'bg-gray-200 dark:bg-white/10'}`}></div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                            
+                            {error && (
+                                <motion.p 
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="text-rose-500 text-[10px] font-black uppercase tracking-widest bg-rose-500/10 p-3 rounded-xl text-center border border-rose-500/20"
+                                >
+                                    {error}
+                                </motion.p>
+                            )}
+                            
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="submit" 
+                                disabled={loading}
+                                className="w-full py-4 text-white font-black uppercase tracking-widest text-xs rounded-xl transition flex justify-center items-center shadow-2xl group relative overflow-hidden"
+                                style={{ backgroundColor: themeColor }}
+                            >
+                                <span className="relative z-10">
+                                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (view === 'login' ? 'Initialize Session' : 'Create Identity')}
+                                </span>
+                                <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                            </motion.button>
+                            
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.4 }}
+                                className="text-center text-[10px] text-gray-500 dark:text-gray-400 mt-4 font-black uppercase tracking-[0.2em]"
+                            >
+                                {view === 'login' ? (
+                                    <p>New user? <button type="button" onClick={() => setView('signup')} className="hover:underline" style={{ color: themeColor }}>Register Core</button></p>
+                                ) : (
+                                    <p>Existing user? <button type="button" onClick={() => setView('login')} className="hover:underline" style={{ color: themeColor }}>Access Core</button></p>
+                                )}
+                            </motion.div>
+                        </form>
                     </div>
-                </form>
-            </div>
+                </div>
+            </motion.div>
         )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -331,111 +401,198 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ currentUser, onLogin, on
                 )}
             </div>
         </button>
+        <AnimatePresence>
+           {isOpen && (
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(10px)' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="absolute right-0 mt-4 w-72 md:w-80 overflow-hidden rounded-[2.5rem] shadow-2xl border border-white/20 dark:border-white/10 z-50 origin-top-right"
+            >
+                {/* Futuristic Glass Background - Matching FeedbackModal */}
+                <div className={`absolute inset-0 z-0 backdrop-blur-3xl transition-colors duration-500 ${isDark ? 'bg-gray-950 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'bg-white/95 shadow-2xl'}`}></div>
+                <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[60px] opacity-20 animate-pulse" style={{ backgroundColor: themeColor }}></div>
+                <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full blur-[60px] opacity-10 animate-pulse" style={{ backgroundColor: themeColor }}></div>
 
-        {isOpen && (
-            <div className="absolute right-0 mt-3 w-72 md:w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden origin-top-right">
-                {view === 'menu' ? (
-                    <>
-                        <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
-                            <p className="font-bold text-gray-900 dark:text-white truncate text-lg" title={currentUser.username}>{currentUser.firstName || currentUser.username} {currentUser.lastName || ''}</p>
-                            <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 truncate">@{currentUser.username}</p>
-                        </div>
-                        <div className="p-2 space-y-1">
-                            <button 
-                                onClick={() => {
-                                    setFormData({ ...currentUser });
-                                    setView('profile');
-                                }}
-                                className="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl flex items-center transition"
-                            >
-                                <Settings className="w-4 h-4 mr-3" /> Edit Profile
-                            </button>
-                            <button 
-                                onClick={() => { onLogout(); setIsOpen(false); }}
-                                className="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl flex items-center transition"
-                            >
-                                <LogOut className="w-4 h-4 mr-3" /> Sign Out
-                            </button>
-                            <div className="h-px bg-gray-100 dark:bg-gray-800 my-1 mx-2"></div>
-                            <button 
-                                onClick={() => { 
-                                    if(confirm("Are you sure? This cannot be undone.")) {
-                                        onDeleteAccount();
-                                        setIsOpen(false);
-                                    }
-                                }}
-                                className="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl flex items-center transition"
-                            >
-                                <Trash2 className="w-4 h-4 mr-3" /> Delete Account
-                            </button>
-                        </div>
-                    </>
-                ) : (
-                    <div className="p-6 overflow-y-auto max-h-[80vh]">
-                         <h3 className="text-lg font-black uppercase tracking-tighter text-gray-900 dark:text-white mb-6 font-brand flex items-center">
-                            <Settings className="w-5 h-5 mr-2" style={{ color: themeColor }} /> Identity Config
-                         </h3>
-                         <form onSubmit={handleUpdateSubmit} className="space-y-4">
-                            
-                            <div className="flex items-center space-x-4 mb-4">
-                                <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden flex items-center justify-center border border-gray-200 dark:border-gray-700 relative group shadow-inner">
-                                    {formData.avatarUrl ? (
-                                        <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                <div className="relative z-10">
+                    {view === 'menu' ? (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="p-0"
+                        >
+                            <div className="p-8 pb-4 flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 rounded-2xl shadow-lg flex items-center justify-center" style={{ backgroundColor: `${themeColor}22`, color: themeColor }}>
+                                            <User className="w-6 h-6" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold font-brand tracking-tight text-gray-900 dark:text-white truncate max-w-[160px]">
+                                            {currentUser.firstName || currentUser.username}
+                                        </h3>
+                                    </div>
+                                    <p className="text-[10px] uppercase font-black tracking-[0.3em] text-gray-500 dark:text-gray-400 truncate ml-1">@{currentUser.username}</p>
+                                </div>
+                            </div>
+
+                            <div className="p-4 pt-2 space-y-1.5">
+                                <motion.button 
+                                    whileHover={{ x: 5, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
+                                    onClick={() => {
+                                        setFormData({ ...currentUser });
+                                        setView('profile');
+                                    }}
+                                    className="w-full text-left px-5 py-4 text-[10px] font-black uppercase tracking-widest text-gray-700 dark:text-gray-300 rounded-2xl flex items-center transition group"
+                                >
+                                    <Settings className="w-4 h-4 mr-4 group-hover:rotate-90 transition-transform" /> Edit Profile
+                                </motion.button>
+                                <motion.button 
+                                    whileHover={{ x: 5, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
+                                    onClick={() => { onLogout(); setIsOpen(false); }}
+                                    className="w-full text-left px-5 py-4 text-[10px] font-black uppercase tracking-widest text-gray-700 dark:text-gray-300 rounded-2xl flex items-center transition group"
+                                >
+                                    <LogOut className="w-4 h-4 mr-4 group-hover:translate-x-1 transition-transform" /> Sign Out
+                                </motion.button>
+                                <div className="h-px bg-gray-100 dark:bg-white/5 my-2 mx-4"></div>
+                                <AnimatePresence mode="wait">
+                                    {!confirmDelete ? (
+                                        <motion.button 
+                                            key="delete-btn"
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -5 }}
+                                            whileHover={{ x: 5, backgroundColor: 'rgba(244,63,94,0.1)' }}
+                                            onClick={() => setConfirmDelete(true)}
+                                            className="w-full text-left px-5 py-4 text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 rounded-2xl flex items-center transition group"
+                                        >
+                                            <Trash2 className="w-4 h-4 mr-4 group-hover:scale-110 transition-transform" /> Delete Account
+                                        </motion.button>
                                     ) : (
-                                        <User className="w-8 h-8 text-gray-400" />
+                                        <motion.div 
+                                            key="confirm-delete"
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            className="mx-4 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 space-y-3"
+                                        >
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 text-center">Confirm Permanent Deletion?</p>
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => setConfirmDelete(false)}
+                                                    className="flex-1 py-2 text-[8px] font-black uppercase tracking-widest bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-xl hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button 
+                                                    onClick={() => { onDeleteAccount(); setIsOpen(false); }}
+                                                    className="flex-1 py-2 text-[8px] font-black uppercase tracking-widest bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors shadow-lg shadow-rose-600/20"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </motion.div>
                                     )}
-                                    <div 
-                                        className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                        onClick={() => fileInputRef.current?.click()}
-                                    >
-                                        <Camera className="w-5 h-5 text-white" />
+                                </AnimatePresence>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="p-8 overflow-y-auto max-h-[80vh]"
+                        >
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="p-2.5 rounded-2xl shadow-lg flex items-center justify-center" style={{ backgroundColor: `${themeColor}22`, color: themeColor }}>
+                                    <Settings className="w-6 h-6 animate-spin-slow" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold font-brand tracking-tight text-gray-900 dark:text-white">Identity Config</h3>
+                                    <p className="text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-widest">Update your neural link</p>
+                                </div>
+                            </div>
+                            <form onSubmit={handleUpdateSubmit} className="space-y-6">
+                                
+                                <div className="flex items-center space-x-6 mb-6">
+                                    <div className="w-20 h-20 rounded-[2rem] bg-white dark:bg-white/5 overflow-hidden flex items-center justify-center border border-gray-200 dark:border-white/10 relative group shadow-2xl">
+                                        {formData.avatarUrl ? (
+                                            <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User className="w-10 h-10 text-gray-400" />
+                                        )}
+                                        <div 
+                                            className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
+                                            <Camera className="w-6 h-6 text-white" />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                                        <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[10px] font-black uppercase tracking-widest hover:underline" style={{ color: themeColor }}>Upload Cell</button>
+                                        <p className="text-[8px] font-bold text-gray-500 dark:text-gray-400 uppercase mt-1 tracking-widest">Max 2MB Payload</p>
                                     </div>
                                 </div>
-                                <div className="flex-1">
-                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs font-black uppercase tracking-widest hover:underline" style={{ color: themeColor }}>Upload Cell</button>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">First</label>
+                                        <input className="w-full px-4 py-2.5 text-sm bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none focus:ring-4 text-gray-900 dark:text-white font-semibold" style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties} value={formData.firstName || ''} onChange={e => setFormData({...formData, firstName: e.target.value})} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Last</label>
+                                        <input className="w-full px-4 py-2.5 text-sm bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none focus:ring-4 text-gray-900 dark:text-white font-semibold" style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties} value={formData.lastName || ''} onChange={e => setFormData({...formData, lastName: e.target.value})} />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">First</label>
-                                    <input className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.firstName || ''} onChange={e => setFormData({...formData, firstName: e.target.value})} />
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">User Handle</label>
+                                    <input className="w-full px-4 py-3 text-sm bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none focus:ring-4 text-gray-900 dark:text-white font-semibold" style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties} value={formData.username || ''} onChange={e => setFormData({...formData, username: e.target.value.replace(/\s/g, '')})} />
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Last</label>
-                                    <input className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.lastName || ''} onChange={e => setFormData({...formData, lastName: e.target.value})} />
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Neural Link (Email)</label>
+                                    <input className="w-full px-4 py-3 text-sm bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none focus:ring-4 text-gray-900 dark:text-white font-semibold" style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties} value={formData.email || ''} onChange={e => setFormData({...formData, email: e.target.value})} />
                                 </div>
-                            </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">User Handle (No Spaces)</label>
-                                <input className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.username || ''} onChange={e => setFormData({...formData, username: e.target.value.replace(/\s/g, '')})} />
-                            </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Pass-Key</label>
+                                    <input type="password" placeholder="New Secret" className="w-full px-4 py-3 text-sm bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 rounded-xl outline-none focus:ring-4 text-gray-900 dark:text-white font-semibold" style={{'--tw-ring-color': `${themeColor}22`} as React.CSSProperties} value={formData.password || ''} onChange={e => setFormData({...formData, password: e.target.value.replace(/\s/g, '')})} />
+                                </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Neural Link (Email)</label>
-                                <input className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.email || ''} onChange={e => setFormData({...formData, email: e.target.value})} />
-                            </div>
+                                {error && <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest text-center bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">{error}</p>}
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pass-Key (No Spaces)</label>
-                                <input type="password" placeholder="New Secret" className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none" value={formData.password || ''} onChange={e => setFormData({...formData, password: e.target.value.replace(/\s/g, '')})} />
-                            </div>
-                            
-                            {error && <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest text-center">{error}</p>}
-
-                            <div className="flex gap-2 pt-2">
-                                <button type="button" onClick={handleCancel} className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 text-[10px] font-black uppercase tracking-widest rounded-xl">Cancel</button>
-                                <button type="submit" disabled={loading} className="flex-1 py-2.5 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition shadow-md" style={{ backgroundColor: themeColor }}>
-                                    {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Update'}
-                                </button>
-                            </div>
-                         </form>
-                    </div>
-                )}
-            </div>
+                                <div className="flex gap-3 pt-4">
+                                    <motion.button 
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        type="button" 
+                                        onClick={handleCancel} 
+                                        className="flex-1 py-4 bg-gray-100 dark:bg-white/5 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                                    >
+                                        Cancel
+                                    </motion.button>
+                                    <motion.button 
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        type="submit" 
+                                        disabled={loading} 
+                                        className="flex-1 py-4 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition shadow-2xl group relative overflow-hidden" 
+                                        style={{ backgroundColor: themeColor }}
+                                    >
+                                        <span className="relative z-10">
+                                            {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Update Core'}
+                                        </span>
+                                        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                                    </motion.button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    )}
+                </div>
+            </motion.div>
         )}
+        </AnimatePresence>
     </div>
   );
 };

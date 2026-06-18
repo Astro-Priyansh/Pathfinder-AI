@@ -1,9 +1,220 @@
 
-import React, { useState, useEffect } from 'react';
-import { DailyRoutine, ExercisePlan, DietPlan, MealItem, UserSettings } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { DailyRoutine, ExercisePlan, DietPlan, MealItem, UserSettings, UserState, LifestylePreference } from '../types';
 import { getDailyRoutine, getExercisePlan, getDietPlan } from '../services/gemini';
-import { Loader2, Coffee, Sun, Moon, Briefcase, Heart, Activity, Dumbbell, Calendar, Apple, ChevronRight, Trash2, Plus, CheckCircle2, Circle, Clock, Zap, Utensils, Droplets, Scale, Lock, Flame, Check, Sparkles, Sprout, Drumstick, RefreshCw, CalendarDays } from 'lucide-react';
+import { Loader2, Coffee, Sun, Moon, Briefcase, Heart, Activity, Dumbbell, Calendar, Apple, ChevronRight, Trash2, Plus, CheckCircle2, Circle, Clock, Zap, Utensils, Droplets, Scale, Lock, Flame, Check, Sparkles, Sprout, Drumstick, RefreshCw, CalendarDays, Compass, Sliders, RotateCcw } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
+
+const LOCAL_EXERCISES: Record<string, { name: string; reps: string; sets: string; tips: string }[]> = {
+  Chest: [
+    { name: "Incline Barbell Bench Press", sets: "4", reps: "8-12", tips: "Keep shoulders retracted, focus on upper chest contraction." },
+    { name: "Flat Dumbbell Press", sets: "3", reps: "10-12", tips: "Lower smoothly to chest level, push up without locking elbows." },
+    { name: "Dumbbell Flyes", sets: "3", reps: "12-15", tips: "Slight bend in elbows, feel the stretch in your pectorals." },
+  ],
+  Shoulders: [
+    { name: "Overhead Dumbbell Press", sets: "4", reps: "8-10", tips: "Keep brace engaged, extend arms fully at the top." },
+    { name: "Lateral Raises", sets: "4", reps: "12-15", tips: "Lead with your elbows, slightly lean forward, keep trap involvement low." },
+    { name: "Rear Delt Flyes", sets: "3", reps: "15", tips: "Focus on pulling with your elbows outward, squeeze rear delts." },
+  ],
+  Biceps: [
+    { name: "Standing Barbell Curls", sets: "4", reps: "8-12", tips: "Minimize body momentum, squeeze elbows to sides." },
+    { name: "Hammer Curls", sets: "3", reps: "10-12", tips: "Keep palms facing each other to target brachialis and forearms." },
+    { name: "Incline Dumbbell Curl", sets: "3", reps: "12", tips: "Keep shoulders back, maximize stretch at bottom." },
+  ],
+  Triceps: [
+    { name: "Tricep Pushdowns (Rope)", sets: "4", reps: "12-15", tips: "Spread the rope at the bottom, lock elbows at sides." },
+    { name: "Overhead Dumbbell Extension", sets: "3", reps: "10-12", tips: "Keep elbows pointed forward, lower weight behind neck safely." },
+    { name: "Close-Grip Bench Press", sets: "3", reps: "8-10", tips: "Keep grip shoulder-width, lower bar to mid-chest." },
+  ],
+  Abs: [
+    { name: "Hanging Leg Raises", sets: "3", reps: "12-15", tips: "Control the descent, do not swing, pull hips up." },
+    { name: "Plank Hold", sets: "3", reps: "60 seconds", tips: "Engage glutes and core, keep body parallel to floor." },
+    { name: "Weighted Ab Crunches", sets: "3", reps: "15", tips: "Focus on curling the spine, squeeze upper abdominals." },
+  ],
+  Quads: [
+    { name: "Barbell Back Squats", sets: "4", reps: "6-10", tips: "Go parallel or below, keep chest up, push through heels." },
+    { name: "Bulgarian Split Squats", sets: "3", reps: "10-12 per leg", tips: "Focus load on front heel, torso slightly forward for glute bias." },
+    { name: "Leg Press", sets: "3", reps: "10-12", tips: "Do not lock out knees at top, lower under control." },
+  ],
+  Hamstrings: [
+    { name: "Romanian Deadlifts (RDLs)", sets: "4", reps: "8-12", tips: "Hinge at hips, push glutes back, feel deep stretch in hamstrings." },
+    { name: "Lying Leg Curls", sets: "3", reps: "10-12", tips: "Keep hips on pad, squeeze hamstrings at peak contraction." },
+    { name: "Kettlebell Swings", sets: "3", reps: "15-20", tips: "Explosive hip hinge driving the bell forward using glutes." },
+  ],
+  Glutes: [
+    { name: "Barbell Hip Thrusts", sets: "4", reps: "8-12", tips: "Tuck chin, squeeze glutes hard at the top with a 1-sec hold." },
+    { name: "Sumo Squats", sets: "3", reps: "10-12", tips: "Wide stance, toes pointed outwards, push up from heels." },
+    { name: "Glute Kickbacks", sets: "3", reps: "15 per leg", tips: "Kick straight back, focus completely on glute contraction." },
+  ],
+  Back: [
+    { name: "Pull-Ups / Lat Pulldown", sets: "4", reps: "8-12", tips: "Pull elbows down, puff chest out to meet the bar." },
+    { name: "Bent-Over Barbell Rows", sets: "4", reps: "8-10", tips: "Keep back straight, pull bar to waist level." },
+    { name: "Seated Cable Rows", sets: "3", reps: "10-12", tips: "Squeeze shoulder blades together, let weight stretch lats." },
+  ],
+  Calves: [
+    { name: "Standing Calf Raises", sets: "4", reps: "15-20", tips: "Go all the way down, pause, then explode on tiptoes." },
+    { name: "Seated Calf Raises", sets: "3", reps: "15", tips: "Slow stretch at bottom, squeeze soleus muscle at peak." },
+  ],
+  Neck: [
+    { name: "Weighted Neck Extensions", sets: "3", reps: "15-20", tips: "Use a head harness or plate with towel, extend chin smoothly up." },
+    { name: "Isometric Neck Holds", sets: "3", reps: "30 seconds", tips: "Apply gentle pressure with hands, resist neck motion strictly." },
+    { name: "Dumbbell Shrugs (Upper Traps)", sets: "4", reps: "12-15", tips: "Lift shoulders straight up to ears, squeeze and hold 1 sec." },
+  ],
+  Forearms: [
+    { name: "Barbell Wrist Curls (Palms Up)", sets: "4", reps: "15-20", tips: "Rest forearms on bench, allow bar to roll to fingertips." },
+    { name: "Reverse Grip Barbell Curls", sets: "3", reps: "12", tips: "Targets pronator and brachioradialis, control the descent." },
+    { name: "Dead Hangs / Farmer's Carry", sets: "3", reps: "60 seconds / max", tips: "Squeeze bar intensely, depress scapula, build robust raw grip." },
+  ],
+  Wrist: [
+    { name: "Wrist Rollers (Extension/Flexion)", sets: "3", reps: "3 rolls up/down", tips: "Keep shoulders locked, drive rollers entirely from movement of wrists." },
+    { name: "Plate Pinches", sets: "3", reps: "45 seconds", tips: "Pinch two smooth plates back-to-back using fingertips only." },
+    { name: "Behind-the-Back Wrist Flexions", sets: "3", reps: "15", tips: "Stand tall, hold barbell behind glutes, flex wrists upward." },
+  ],
+  Feet: [
+    { name: "Towel Grab Toe Flexions", sets: "3", reps: "20 reps", tips: "Spread feet flat, scrunch and pull a dry towel with toes." },
+    { name: "Ankle Band Resisted Inversion", sets: "3", reps: "15", tips: "Attach resistance band to anchor, flex ankle inwards safely." },
+    { name: "Single-Leg Balance Board / Flat Balance", sets: "3", reps: "45 seconds", tips: "Stand on one leg, focus ankle micro-corrections for balance." },
+  ],
+  Obliques: [
+    { name: "Russian Twists with Weight", sets: "3", reps: "15 per side", tips: "Lean back 45 degrees, rotate torso completely rather than just hands." },
+    { name: "Hanging Side Knee Raises", sets: "3", reps: "12 per side", tips: "Pull knees up diagonally to ribs, squeeze lateral torso." },
+    { name: "Cable Woodchoppers", sets: "3", reps: "12 per side", tips: "Pull diagonally across body, pivot back foot, rotate hips." },
+  ],
+};
+
+const PathsByGender = {
+  Male: {
+    front: {
+      head: "M 80,30 m -14,0 a 14,14 0 1,1 28,0 a 14,14 0 1,1 -28,0",
+      neck: "M 74,40 L 86,40 L 86,48 L 74,48 Z",
+      shoulders_l: "M 72,48 C 60,48 46,51 40,65 C 38,72 40,78 46,78 L 52,68 Z",
+      shoulders_r: "M 88,48 C 100,48 114,51 120,65 C 122,72 120,78 114,78 L 108,68 Z",
+      chest_l: "M 78,54 L 52,58 C 50,78 60,88 78,88 Z",
+      chest_r: "M 82,54 L 108,58 C 110,78 100,88 82,88 Z",
+      abs: "M 56,90 L 104,90 L 96,146 L 64,146 Z",
+      obliques_l: "M 52,90 L 56,90 L 64,146 L 58,146 Z",
+      obliques_r: "M 108,90 L 104,90 L 96,146 L 102,146 Z",
+      biceps_l: "M 38,68 C 28,78 28,96 34,104 L 44,98 L 44,74 Z",
+      biceps_r: "M 122,68 C 132,78 132,96 126,104 L 116,98 L 116,74 Z",
+      forearms_l: "M 34,104 C 28,114 26,128 32,138 L 40,132 L 44,98 Z",
+      forearms_r: "M 126,104 C 132,114 134,128 128,138 L 120,132 L 116,98 Z",
+      wrists_l: "M 32,138 L 31,146 L 39,144 L 40,132 Z",
+      wrists_r: "M 128,138 L 129,146 L 121,144 L 120,132 Z",
+      hands_l: "M 31,146 C 29,152 31,156 34,160 L 39,154 L 39,144 Z",
+      hands_r: "M 129,146 C 131,152 129,156 126,160 L 121,154 L 121,144 Z",
+      quads_l: "M 62,150 L 46,155 L 50,220 L 64,220 Z",
+      quads_r: "M 98,150 L 114,155 L 110,220 L 96,220 Z",
+      calves_l: "M 50,226 L 42,265 L 52,285 L 56,226 Z",
+      calves_r: "M 110,226 L 118,265 L 108,285 L 104,226 Z",
+      feet_l: "M 42,265 L 34,295 C 34,298 44,298 52,295 L 52,285 Z",
+      feet_r: "M 118,265 L 126,295 C 126,298 116,298 108,295 L 108,285 Z",
+    },
+    back: {
+      head: "M 80,30 m -14,0 a 14,14 0 1,1 28,0 a 14,14 0 1,1 -28,0",
+      neck: "M 74,40 L 86,40 L 86,44 L 74,44 Z",
+      traps: "M 70,44 L 90,44 L 104,62 L 56,62 Z",
+      lats_l: "M 52,64 L 78,64 L 76,110 L 56,104 Z",
+      lats_r: "M 108,64 L 82,64 L 84,110 L 104,104 Z",
+      triceps_l: "M 38,68 C 30,78 30,96 34,104 L 44,98 Z",
+      triceps_r: "M 122,68 C 130,78 130,96 126,104 L 116,98 Z",
+      forearms_l: "M 34,104 C 28,114 26,128 32,138 L 40,132 L 44,98 Z",
+      forearms_r: "M 126,104 C 132,114 134,128 128,138 L 120,132 L 116,98 Z",
+      wrists_l: "M 32,138 L 31,146 L 39,144 L 40,132 Z",
+      wrists_r: "M 128,138 L 129,146 L 121,144 L 120,132 Z",
+      hands_l: "M 31,146 C 29,152 31,156 34,160 L 39,154 L 39,144 Z",
+      hands_r: "M 129,146 C 131,152 129,156 126,160 L 121,154 L 121,144 Z",
+      glutes: "M 56,112 L 104,112 C 112,138 102,154 80,154 C 58,154 48,138 56,112 Z",
+      hamstrings_l: "M 62,156 L 46,162 L 50,220 L 64,220 Z",
+      hamstrings_r: "M 98,156 L 114,162 L 110,220 L 96,220 Z",
+      calves_l: "M 50,226 L 42,265 L 52,285 L 56,226 Z",
+      calves_r: "M 110,226 L 118,265 L 108,285 L 104,226 Z",
+      feet_l: "M 42,265 L 34,295 C 34,298 44,298 52,295 L 52,285 Z",
+      feet_r: "M 118,265 L 126,295 C 126,298 116,298 108,295 L 108,285 Z",
+    }
+  },
+  Female: {
+    front: {
+      head: "M 80,30 m -12,0 a 12,12 0 1,1 24,0 a 12,12 0 1,1 -24,0",
+      neck: "M 75,38 L 85,38 L 85,46 L 75,46 Z",
+      shoulders_l: "M 73,46 C 63,46 52,48 44,60 Q 42,65 47,68 L 52,60 Z",
+      shoulders_r: "M 87,46 C 97,46 108,48 116,60 Q 118,65 113,68 L 108,60 Z",
+      chest_l: "M 78,54 L 54,58 C 50,74 58,82 78,82 Z",
+      chest_r: "M 82,54 L 106,58 C 110,74 102,82 82,82 Z",
+      abs: "M 58,84 L 102,84 L 92,142 L 68,142 Z",
+      obliques_l: "M 54,84 L 58,84 L 68,142 L 62,142 Z",
+      obliques_r: "M 106,84 L 102,84 L 92,142 L 98,142 Z",
+      biceps_l: "M 42,62 C 34,70 32,88 38,96 L 46,90 L 46,68 Z",
+      biceps_r: "M 118,62 C 126,70 128,88 122,96 L 114,90 L 114,68 Z",
+      forearms_l: "M 38,96 C 35,108 34,124 37,134 L 43,128 L 46,90 Z",
+      forearms_r: "M 122,96 C 125,108 126,124 123,134 L 117,128 L 114,90 Z",
+      wrists_l: "M 37,134 L 35,144 L 41,142 L 43,128 Z",
+      wrists_r: "M 123,134 L 125,144 L 119,142 L 117,128 Z",
+      hands_l: "M 35,144 C 33,150 35,154 38,158 L 43,154 L 41,142 Z",
+      hands_r: "M 125,144 C 127,150 125,154 122,158 L 117,154 L 119,142 Z",
+      quads_l: "M 64,146 L 42,152 L 48,220 L 64,220 Z",
+      quads_r: "M 96,146 L 118,152 L 112,220 L 96,220 Z",
+      calves_l: "M 48,226 L 40,265 L 52,285 L 56,226 Z",
+      calves_r: "M 112,226 L 120,265 L 108,285 L 104,226 Z",
+      feet_l: "M 40,265 L 34,293 Q 34,298 46,296 L 52,285 Z",
+      feet_r: "M 120,265 L 126,293 Q 126,298 114,296 L 108,285 Z",
+    },
+    back: {
+      head: "M 80,30 m -12,0 a 12,12 0 1,1 24,0 a 12,12 0 1,1 -24,0",
+      neck: "M 75,38 L 85,38 L 85,42 L 75,42 Z",
+      traps: "M 72,42 L 88,42 L 100,58 L 60,58 Z",
+      lats_l: "M 54,60 L 78,60 L 76,104 L 58,98 Z",
+      lats_r: "M 106,60 L 82,60 L 84,104 L 102,98 Z",
+      triceps_l: "M 42,62 C 34,70 32,88 38,96 L 46,90 Z",
+      triceps_r: "M 118,62 C 126,70 128,88 122,96 L 114,90 Z",
+      forearms_l: "M 38,96 C 35,108 34,124 37,134 L 43,128 L 46,90 Z",
+      forearms_r: "M 122,96 C 125,108 126,124 123,134 L 117,128 L 114,90 Z",
+      wrists_l: "M 37,134 L 35,144 L 41,142 L 43,128 Z",
+      wrists_r: "M 123,134 L 125,144 L 119,142 L 117,128 Z",
+      hands_l: "M 35,144 C 33,150 35,154 38,158 L 43,154 L 41,142 Z",
+      hands_r: "M 125,144 C 127,150 125,154 122,158 L 117,154 L 119,142 Z",
+      glutes: "M 58,106 L 102,106 C 112,134 102,150 80,150 C 58,150 48,134 58,106 Z",
+      hamstrings_l: "M 64,152 L 42,158 L 48,220 L 64,220 Z",
+      hamstrings_r: "M 96,152 L 118,158 L 112,220 L 96,220 Z",
+      calves_l: "M 48,226 L 40,265 L 52,285 L 56,226 Z",
+      calves_r: "M 112,226 L 120,265 L 108,285 L 104,226 Z",
+      feet_l: "M 40,265 L 34,293 Q 34,298 46,296 L 52,285 Z",
+      feet_r: "M 120,265 L 126,293 Q 126,298 114,296 L 108,285 Z",
+    }
+  }
+};
+
+const MuscleMapping: Record<string, string> = {
+  neck: "Neck",
+  shoulders_l: "Shoulders",
+  shoulders_r: "Shoulders",
+  chest_l: "Chest",
+  chest_r: "Chest",
+  biceps_l: "Biceps",
+  biceps_r: "Biceps",
+  forearms_l: "Forearms",
+  forearms_r: "Forearms",
+  wrists_l: "Wrist",
+  wrists_r: "Wrist",
+  hands_l: "Forearms",
+  hands_r: "Forearms",
+  abs: "Abs",
+  obliques_l: "Obliques",
+  obliques_r: "Obliques",
+  quads_l: "Quads",
+  quads_r: "Quads",
+  calves_l: "Calves",
+  calves_r: "Calves",
+  feet_l: "Feet",
+  feet_r: "Feet",
+  traps: "Back",
+  lats_l: "Back",
+  lats_r: "Back",
+  triceps_l: "Triceps",
+  triceps_r: "Triceps",
+  glutes: "Glutes",
+  hamstrings_l: "Hamstrings",
+  hamstrings_r: "Hamstrings",
+};
 
 interface HabitEnhancerProps {
   onCompleteRoutine: (routine: DailyRoutine) => void;
@@ -14,6 +225,8 @@ interface HabitEnhancerProps {
   existingDiet: DietPlan | null;
   targetCareer: string | null;
   settings: UserSettings;
+  userState: UserState;
+  onUpdateUserState: (updates: Partial<UserState>) => void;
 }
 
 export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({ 
@@ -24,10 +237,152 @@ export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({
   existingPlan, 
   existingDiet, 
   targetCareer,
-  settings
+  settings,
+  userState,
+  onUpdateUserState
 }) => {
-  const [activeTab, setActiveTab] = useState<'routine' | 'exercise' | 'diet'>('routine');
-  
+  const [activeTab, setActiveTab] = useState<'main' | 'routine' | 'exercise' | 'diet'>('main');
+
+  // Helper to pre-populate characteristics of selected careers
+  const getCareerLifestyleFactors = (careerName: string) => {
+    const name = careerName.toLowerCase();
+    if (name.includes('software') || name.includes('developer') || name.includes('programmer') || name.includes('tech') || name.includes('web') || name.includes('engine')) {
+      return { flexibility: 9, stress: 5, hours: 40, community: 7, environment: 'Hybrid / Remote Tech Hub', remoteRatio: 85 };
+    }
+    if (name.includes('writer') || name.includes('author') || name.includes('creative') || name.includes('artist') || name.includes('copywrite')) {
+      return { flexibility: 10, stress: 3, hours: 32, community: 3, environment: 'Highly Autonomous Home Studio', remoteRatio: 95 };
+    }
+    if (name.includes('doctor') || name.includes('nurse') || name.includes('medical') || name.includes('surgeon') || name.includes('health') || name.includes('physician')) {
+      return { flexibility: 2, stress: 9, hours: 55, community: 9, environment: 'High-Pace Hospital / Clinic', remoteRatio: 5 };
+    }
+    if (name.includes('consult') || name.includes('finance') || name.includes('bank') || name.includes('analyst') || name.includes('accountant')) {
+      return { flexibility: 5, stress: 8, hours: 55, community: 8, environment: 'Corporate Office / Client Boardrooms', remoteRatio: 30 };
+    }
+    if (name.includes('designer') || name.includes('ux') || name.includes('ui') || name.includes('illustrator')) {
+      return { flexibility: 8, stress: 5, hours: 38, community: 7, environment: 'Creative Agency / Remote Workspace', remoteRatio: 75 };
+    }
+    if (name.includes('manager') || name.includes('lead') || name.includes('product') || name.includes('director')) {
+      return { flexibility: 6, stress: 7, hours: 45, community: 10, environment: 'Collaborative Workspace / HQ', remoteRatio: 50 };
+    }
+    if (name.includes('teacher') || name.includes('prof') || name.includes('acad') || name.includes('educat')) {
+      return { flexibility: 4, stress: 6, hours: 42, community: 8, environment: 'School Campus Classroom', remoteRatio: 15 };
+    }
+    return { flexibility: 6, stress: 6, hours: 40, community: 6, environment: 'Modern Professional Environment', remoteRatio: 40 };
+  };
+
+  // Lifestyle states synced with UserState
+  const [profileWLB, setProfileWLB] = useState<number>(userState.lifestylePreferences?.workLifeBalance ?? 7);
+  const [profileTravel, setProfileTravel] = useState<'none' | 'medium' | 'high'>(userState.lifestylePreferences?.travelTolerance ?? 'medium');
+  const [profileIncome, setProfileIncome] = useState<'low' | 'medium' | 'high'>(userState.lifestylePreferences?.incomePriority ?? 'medium');
+  const [profileAutonomy, setProfileAutonomy] = useState<number>(userState.lifestylePreferences?.autonomy ?? 7);
+  const [profileLocation, setProfileLocation] = useState<'remote' | 'hybrid' | 'onsite'>(userState.lifestylePreferences?.locationPref ?? 'hybrid');
+
+  // Trade-off rates (Salary vs Hours vs Flexibility)
+  const [tradeOffSalary, setTradeOffSalary] = useState<number>(userState.lifestylePreferences?.salaryVsHoursVsFlex?.salary ?? 40);
+  const [tradeOffHours, setTradeOffHours] = useState<number>(userState.lifestylePreferences?.salaryVsHoursVsFlex?.hours ?? 30);
+  const [tradeOffFlex, setTradeOffFlex] = useState<number>(userState.lifestylePreferences?.salaryVsHoursVsFlex?.flexibility ?? 30);
+
+  // Check in Success banner state
+  const [showCheckInSuccess, setShowCheckInSuccess] = useState(false);
+
+  // Sync state handler
+  const savePreferences = (updated: Partial<LifestylePreference>) => {
+    const nextPrefs: LifestylePreference = {
+      workLifeBalance: profileWLB,
+      travelTolerance: profileTravel,
+      incomePriority: profileIncome,
+      autonomy: profileAutonomy,
+      locationPref: profileLocation,
+      salaryVsHoursVsFlex: { salary: tradeOffSalary, hours: tradeOffHours, flexibility: tradeOffFlex },
+      lastCheckIn: userState.lifestylePreferences?.lastCheckIn,
+      checkInHistory: userState.lifestylePreferences?.checkInHistory ?? [],
+      ...updated
+    };
+    onUpdateUserState({ lifestylePreferences: nextPrefs });
+  };
+
+  // Handle Log Current Preferences
+  const handleCheckInLog = () => {
+    const today = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const currentHist = userState.lifestylePreferences?.checkInHistory ?? [];
+    
+    const newHist = {
+      date: today,
+      workLifeBalance: profileWLB,
+      autonomy: profileAutonomy,
+      targetRole: targetCareer || 'General Pathseeker'
+    };
+
+    const nextHistList = [newHist, ...currentHist.filter(x => x.date !== today)].slice(0, 10);
+    savePreferences({
+      lastCheckIn: today,
+      checkInHistory: nextHistList
+    });
+    
+    setShowCheckInSuccess(true);
+    setTimeout(() => setShowCheckInSuccess(false), 4000);
+  };
+
+  // Compute Wellbeing Score
+  const wellbeingScore = useMemo(() => {
+    let score = 50; 
+    score += profileWLB * 3.5; 
+    score += profileAutonomy * 1.5; 
+    if (profileLocation === 'remote') score += 10;
+    else if (profileLocation === 'hybrid') score += 5;
+    if (profileTravel === 'none') score += 5;
+    else if (profileTravel === 'medium') score += 3;
+    
+    const hoursWeight = tradeOffHours / 100;
+    const flexWeight = tradeOffFlex / 100;
+    score -= hoursWeight * 15;
+    score += flexWeight * 10;
+
+    return Math.min(100, Math.max(25, Math.round(score)));
+  }, [profileWLB, profileAutonomy, profileLocation, profileTravel, tradeOffHours, tradeOffFlex]);
+
+  // Compute Alignment Score
+  const alignmentScoreAndFeedback = useMemo(() => {
+    const activeCareer = targetCareer || 'Software Engineer';
+    const factors = getCareerLifestyleFactors(activeCareer);
+    
+    let wlbDiff = Math.abs(profileWLB - (10 - factors.stress));
+    let wlbMatch = 100 - (wlbDiff * 8);
+
+    let autonomyDiff = Math.abs(profileAutonomy - factors.flexibility);
+    let autonomyMatch = 100 - (autonomyDiff * 8);
+
+    let locMatch = 100;
+    if (profileLocation === 'remote' && factors.remoteRatio < 50) {
+      locMatch = 40;
+    } else if (profileLocation === 'remote' && factors.remoteRatio < 80) {
+      locMatch = 75;
+    } else if (profileLocation === 'onsite' && factors.remoteRatio > 80) {
+      locMatch = 70;
+    }
+
+    let salaryMatch = 100;
+    if (profileIncome === 'high' && factors.stress < 6 && factors.hours < 40) {
+      salaryMatch = 70;
+    }
+
+    const avg = Math.round((wlbMatch + autonomyMatch + locMatch + salaryMatch) / 4);
+    const finalScore = Math.min(100, Math.max(30, avg));
+
+    let feedbackText = '';
+    if (finalScore >= 85) {
+      feedbackText = `Outstanding alignment! Your request for autonomy, and hybrid/remote work aligns seamlessly with typical conditions for a ${activeCareer}.`;
+    } else if (finalScore >= 70) {
+      feedbackText = `Satisfactory fit. ${activeCareer} will support your key lifestyle preferences nicely, but keep a healthy boundary to manage potential stress peaks.`;
+    } else if (finalScore >= 50) {
+      feedbackText = `Moderate lifestyle friction found. The stress levels and typical schedules of a ${activeCareer} might challenge your target work-life balance of ${profileWLB}/10.`;
+    } else {
+      feedbackText = `Noticeable mismatch warning! A typical ${activeCareer} environment requires long hours (${factors.hours}h) or has stress of ${factors.stress}/10, which strongly conflicts with your low-stress, high-WLB preferences.`;
+    }
+
+    return { score: finalScore, feedback: feedbackText, factors };
+  }, [targetCareer, profileWLB, profileAutonomy, profileLocation, profileIncome]);
+
   // Routine State
   const [careerInput, setCareerInput] = useState(targetCareer || '');
   const [loading, setLoading] = useState(false);
@@ -40,6 +395,24 @@ export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({
   const [fitnessGoal, setFitnessGoal] = useState('');
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [plan, setPlan] = useState<ExercisePlan | null>(existingPlan);
+  const [selectedGender, setSelectedGender] = useState<'Male' | 'Female'>('Male');
+  const [focusType, setFocusType] = useState<'whole' | 'muscle'>('whole');
+  const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
+
+  // Auto-sync typing body part name to anatomy selection
+  useEffect(() => {
+    if (focusType === 'muscle' && fitnessGoal) {
+      const trimmedGoal = fitnessGoal.trim().toLowerCase();
+      const matched = Object.keys(LOCAL_EXERCISES).find(m => 
+        trimmedGoal.includes(m.toLowerCase()) || m.toLowerCase().includes(trimmedGoal)
+      );
+      if (matched) {
+        setSelectedMuscle(matched);
+      } else if (trimmedGoal === '') {
+        setSelectedMuscle(null);
+      }
+    }
+  }, [fitnessGoal, focusType]);
 
   // Diet State
   const [height, setHeight] = useState(''); // cm
@@ -107,6 +480,16 @@ export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({
   // Dynamic Theme Config
   const getTheme = () => {
     switch (activeTab) {
+      case 'main':
+        return {
+          gradient: 'from-fuchsia-600 to-violet-600',
+          shadow: 'shadow-fuchsia-200 dark:shadow-none',
+          accent: 'text-fuchsia-600 dark:text-fuchsia-400',
+          bgLight: 'bg-fuchsia-50 dark:bg-fuchsia-900/20',
+          border: 'border-fuchsia-100 dark:border-fuchsia-800',
+          button: 'bg-fuchsia-600 hover:bg-fuchsia-700',
+          icon: Sliders
+        };
       case 'routine':
         return {
           gradient: 'from-violet-600 to-indigo-600',
@@ -307,14 +690,601 @@ export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({
             </h2>
             <p className="text-white/90 mt-2 max-w-lg">Design a day that brings you closer to your goals. Balance productivity, health, and rest.</p>
         </div>
-        <div className="bg-white/20 backdrop-blur-md p-1 rounded-xl flex self-start md:self-auto border border-white/20">
-            <button onClick={() => setActiveTab('routine')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center ${activeTab === 'routine' ? 'bg-white text-indigo-600 shadow-md' : 'text-white hover:bg-white/10'}`}><Coffee className="w-4 h-4 mr-2" /> Routine</button>
-            <button onClick={() => setActiveTab('exercise')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center ${activeTab === 'exercise' ? 'bg-white text-blue-600 shadow-md' : 'text-white hover:bg-white/10'}`}><Dumbbell className="w-4 h-4 mr-2" /> Fitness</button>
-            <button onClick={() => canAccessDiet && setActiveTab('diet')} disabled={!canAccessDiet} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center ${activeTab === 'diet' ? 'bg-white text-teal-600 shadow-md' : 'text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed'}`} title={!canAccessDiet ? "Complete Routine and Fitness first" : ""} >{canAccessDiet ? <Utensils className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />} Diet</button>
+        <div className="w-full md:w-auto overflow-x-auto no-scrollbar flex flex-row items-center gap-1.5 p-1.5 bg-white/15 dark:bg-black/30 backdrop-blur-lg border border-white/20 rounded-2xl shrink-0">
+            <style>{`
+              .no-scrollbar::-webkit-scrollbar { display: none !important; }
+              .no-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+            `}</style>
+            <button onClick={() => setActiveTab('main')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center whitespace-nowrap flex-shrink-0 ${activeTab === 'main' ? 'bg-white text-fuchsia-600 shadow-md' : 'text-white hover:bg-white/10'}`}><Sliders className="w-4 h-4 mr-2" /> Lifestyle Match</button>
+            <button onClick={() => setActiveTab('routine')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center whitespace-nowrap flex-shrink-0 ${activeTab === 'routine' ? 'bg-white text-indigo-600 shadow-md' : 'text-white hover:bg-white/10'}`}><Coffee className="w-4 h-4 mr-2" /> Routine</button>
+            <button onClick={() => setActiveTab('exercise')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center whitespace-nowrap flex-shrink-0 ${activeTab === 'exercise' ? 'bg-white text-blue-600 shadow-md' : 'text-white hover:bg-white/10'}`}><Dumbbell className="w-4 h-4 mr-2" /> Fitness</button>
+            <button onClick={() => canAccessDiet && setActiveTab('diet')} disabled={!canAccessDiet} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center whitespace-nowrap flex-shrink-0 ${activeTab === 'diet' ? 'bg-white text-teal-600 shadow-md' : 'text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed'}`} title={!canAccessDiet ? "Complete Routine and Fitness first" : ""} >{canAccessDiet ? <Utensils className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />} Diet</button>
         </div>
       </div>
 
       <div key={activeTab} className="animate-fade-in">
+        {activeTab === 'main' && (
+          <div className="space-y-8 animate-slide-right duration-300">
+            {/* Realtime Success Toast */}
+            {showCheckInSuccess && (
+              <div className="fixed bottom-6 right-6 z-50 p-4 bg-emerald-600 text-white rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-500 animate-slide-up">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+                <div className="text-xs font-bold font-brand tracking-wide">
+                  LIFESTYLE CHECK-IN LOGGED SECURELY ⚡
+                </div>
+              </div>
+            )}
+
+            {/* Core Metrics & Dynamic Alignment Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Column: Preferences Configurator */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700/60 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
+                    <Sliders className="w-40 h-40 text-fuchsia-600 dark:text-fuchsia-400" />
+                  </div>
+                  
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center font-brand">
+                        <Sliders className="w-5 h-5 mr-2 text-fuchsia-500" /> Lifestyle Preference Profile
+                      </h3>
+                      <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">Configure your target quality of life standards below. Alignment computes instantly.</p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setProfileWLB(7);
+                        setProfileAutonomy(7);
+                        setProfileTravel('medium');
+                        setProfileIncome('medium');
+                        setProfileLocation('hybrid');
+                        savePreferences({
+                          workLifeBalance: 7,
+                          autonomy: 7,
+                          travelTolerance: 'medium',
+                          incomePriority: 'medium',
+                          locationPref: 'hybrid'
+                        });
+                      }}
+                      className="text-[10px] uppercase font-black tracking-widest text-[#4f46e5] bg-indigo-50 dark:bg-indigo-950/20 px-3 py-1.5 rounded-xl hover:scale-105 transition"
+                    >
+                      Reset profile
+                    </button>
+                  </div>
+
+                  <div className="relative z-10 space-y-8">
+                    {/* Work Life Balance Slider */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          ⚖️ Desired Work-Life Balance: <span className="text-fuchsia-500 font-black">{profileWLB}/10</span>
+                        </label>
+                        <span className="text-[10px] text-gray-400 font-semibold italic">
+                          {profileWLB >= 8 ? 'Wants flexible leisure priority' : profileWLB >= 5 ? 'Standard office balance' : 'Intense high-grind dedication'}
+                        </span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="10" 
+                        value={profileWLB} 
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          setProfileWLB(val);
+                          savePreferences({ workLifeBalance: val });
+                        }}
+                        className="w-full accent-fuchsia-500 bg-gray-100 dark:bg-gray-900 h-2 rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Autonomy Level Slider */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          🎨 Creative Autonomy & Freedom: <span className="text-violet-500 font-black">{profileAutonomy}/10</span>
+                        </label>
+                        <span className="text-[10px] text-gray-400 font-semibold italic">
+                          {profileAutonomy >= 8 ? 'Complete self-direction' : profileAutonomy >= 5 ? 'Collaborative guidance' : 'Rigid structured instructions'}
+                        </span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="10" 
+                        value={profileAutonomy} 
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          setProfileAutonomy(val);
+                          savePreferences({ autonomy: val });
+                        }}
+                        className="w-full accent-violet-500 bg-gray-100 dark:bg-gray-900 h-2 rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Work Location Mode Chips */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                        🌐 Preferred Workspace Model
+                      </label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { val: 'remote', label: '💻 Remote Laptop', desc: 'Work from anywhere' },
+                          { val: 'hybrid', label: '🔄 Hybrid Mix', desc: 'Best of both worlds' },
+                          { val: 'onsite', label: '🏢 Onsite Hub', desc: 'In-person workplace' }
+                        ].map(item => (
+                          <button
+                            key={item.val}
+                            onClick={() => {
+                              setProfileLocation(item.val as any);
+                              savePreferences({ locationPref: item.val as any });
+                            }}
+                            className={`p-3 rounded-2xl border text-left transition transform duration-200 active:scale-95 ${
+                              profileLocation === item.val
+                              ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 border-fuchsia-400 shadow-md text-fuchsia-700 dark:text-fuchsia-300'
+                              : 'bg-gray-50/50 dark:bg-gray-900/55 border-gray-100 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/40'
+                            }`}
+                          >
+                            <div className="text-xs font-bold leading-none mb-1">{item.label}</div>
+                            <div className="text-[10px] font-medium opacity-75">{item.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Travel Tolerance Selector */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                        ✈️ Business Travel Tolerance
+                      </label>
+                      <div className="flex bg-gray-50 dark:bg-gray-900/80 p-1 rounded-2xl border border-gray-100 dark:border-gray-800 justify-between">
+                        {[
+                          { val: 'none', label: 'Zero Travel' },
+                          { val: 'medium', label: 'Moderate' },
+                          { val: 'high', label: 'Frequent' }
+                        ].map((choice) => (
+                          <button
+                            key={choice.val}
+                            onClick={() => {
+                              setProfileTravel(choice.val as any);
+                              savePreferences({ travelTolerance: choice.val as any });
+                            }}
+                            className={`flex-1 text-center py-2 rounded-xl text-xs font-bold transition-all ${
+                              profileTravel === choice.val 
+                              ? 'bg-white dark:bg-gray-800 text-fuchsia-600 dark:text-fuchsia-400 shadow' 
+                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            }`}
+                          >
+                            {choice.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Income Preference Sector */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                        💰 Income Priority Level
+                      </label>
+                      <div className="flex bg-gray-50 dark:bg-gray-900/80 p-1 rounded-2xl border border-gray-100 dark:border-gray-800 justify-between">
+                        {[
+                          { val: 'low', label: 'Lifestyle First' },
+                          { val: 'medium', label: 'Balanced Pay' },
+                          { val: 'high', label: 'Max Earnings' }
+                        ].map((choice) => (
+                          <button
+                            key={choice.val}
+                            onClick={() => {
+                              setProfileIncome(choice.val as any);
+                              savePreferences({ incomePriority: choice.val as any });
+                            }}
+                            className={`flex-1 text-center py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                              profileIncome === choice.val 
+                              ? 'bg-white dark:bg-gray-800 text-violet-600 dark:text-violet-400 shadow' 
+                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            }`}
+                          >
+                            {choice.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* College Lifestyle Synergy Panel */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700/60 shadow-sm text-left">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center mb-2 font-brand">
+                    <Compass className="w-5 h-5 text-indigo-500 mr-2" /> College Student Lifestyle Synergy
+                  </h3>
+                  <p className="text-xs text-gray-400 dark:text-gray-400 mb-4">
+                    Assesses financial and commute stress vectors based on your College Finder selections.
+                  </p>
+
+                  {userState.collegeResults && (userState.collegeResults.domestic?.length || userState.collegeResults.foreign?.length) ? (
+                    (() => {
+                      const allColleges = [
+                        ...(userState.collegeResults.domestic || []), 
+                        ...(userState.collegeResults.foreign || [])
+                      ];
+                      
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {allColleges.slice(0, 4).map((col, cId) => {
+                            const rentLevel = col.colDetails?.rentIndex ?? Math.round((25 + (cId * 15)) % 90 + 20);
+                            const grocLevel = col.colDetails?.grocIndex ?? Math.round((30 + (cId * 10)) % 80 + 25);
+                            const totalCol = col.colDetails?.annualEstTotalCOL ?? `$${Math.round(8000 + (cId * 2400))}/yr`;
+                            
+                            let studentFitColor = 'text-green-505 bg-green-500/10 border-green-500/20';
+                            let studentFitLabel = 'Excellent Financial Fit';
+                            if (rentLevel > 70) {
+                              studentFitColor = 'text-red-500 bg-red-500/10 border-red-500/20';
+                              studentFitLabel = 'High Cost Warning';
+                            } else if (rentLevel > 45) {
+                              studentFitColor = 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+                              studentFitLabel = 'Moderate City Cost';
+                            }
+
+                            return (
+                              <div key={cId} className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 flex flex-col justify-between">
+                                <div className="text-left">
+                                  <div className="flex justify-between items-start gap-1 pb-2">
+                                    <h4 className="text-xs font-bold text-gray-850 dark:text-gray-200 line-clamp-1">{col.name}</h4>
+                                    <span className="text-[9px] uppercase tracking-widest bg-indigo-500/10 px-1.5 py-0.5 rounded text-indigo-500 shrink-0 font-bold">ROI: {col.roi || 'TBD'}</span>
+                                  </div>
+                                  <p className="text-[10px] text-gray-405 dark:text-gray-400 mb-2 line-clamp-1">📍 {col.location}</p>
+                                  
+                                  <div className="space-y-1 text-[10px] text-gray-550 dark:text-gray-400 border-t border-gray-100 dark:border-gray-850/60 pt-2">
+                                    <div className="flex justify-between">
+                                      <span>Rent Index:</span> 
+                                      <span className="font-mono text-gray-700 dark:text-gray-300 font-bold">{rentLevel}/100</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Grocery Index:</span> 
+                                      <span className="font-mono text-gray-700 dark:text-gray-300 font-bold">{grocLevel}/100</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Est. Living Cost:</span> 
+                                      <span className="font-mono text-gray-700 dark:text-gray-300 font-extrabold">{totalCol}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className={`mt-3 text-[9px] font-black uppercase text-center py-1 rounded-lg border ${studentFitColor}`}>
+                                  {studentFitLabel}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className="p-6 bg-gray-50 dark:bg-gray-900/40 rounded-2xl text-center text-xs text-gray-500 dark:text-gray-400 border border-dashed border-gray-200 dark:border-gray-800">
+                      <p className="max-w-md mx-auto">No domestic or international colleges from your College Finder search are currently mapped. Visit your Finder page to check candidate profiles.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Wellbeing Scoring & Alignment */}
+              <div className="lg:col-span-12 xl:col-span-5 space-y-6">
+                
+                {/* Score Section */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between items-center relative overflow-hidden">
+                  <div className="w-full flex justify-between items-center mb-6">
+                    <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider font-brand">Wellbeing Scoring</h3>
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-500 font-bold uppercase tracking-widest bg-emerald-500/10 px-2.5 py-1 rounded-xl">
+                      <Activity className="w-3.5 h-3.5 animate-pulse" /> Live Analysis
+                    </div>
+                  </div>
+
+                  {/* Circular Score Visual representation */}
+                  <div className="relative w-40 h-40 flex items-center justify-center my-3 select-none">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-gray-100 dark:text-gray-700" />
+                      <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray="251.2" strokeDashoffset={251.2 - (251.2 * wellbeingScore) / 100} className="text-fuchsia-500 transition-all duration-1000 ease-out" strokeLinecap="round" />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-4xl font-extrabold font-brand text-gray-900 dark:text-white tracking-tighter">{wellbeingScore}</span>
+                      <span className="text-[10px] uppercase font-black tracking-widest text-gray-400">Vitality Index</span>
+                    </div>
+                  </div>
+
+                  <div className="w-full text-center mt-3 p-3 bg-gray-50/50 dark:bg-gray-900/40 rounded-2xl border border-gray-100 dark:border-gray-800">
+                     <div className="text-[11px] font-black tracking-widest text-[#d946ef] dark:text-fuchsia-400 uppercase leading-relaxed mb-0.5">
+                       {wellbeingScore >= 80 ? '👑 Premium Vitality Status' : wellbeingScore >= 55 ? '⚖️ Healthy Balanced State' : '⚠️ Alert: high burn risk detected'}
+                     </div>
+                     <p className="text-[10px] text-gray-500 leading-normal max-w-xs mx-auto">
+                       Derived from preferred boundaries, hours allocation, travel friction, and custom workplace flexibilities.
+                     </p>
+                  </div>
+                </div>
+
+                {/* Career Alignment Scoring Card */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm text-left">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xs font-bold text-gray-950 dark:text-white uppercase tracking-wider font-brand">Lifestyle Alignment Score</h3>
+                    <div className="text-xs font-bold text-fuchsia-600 dark:text-fuchsia-450">
+                      Target: <span className="font-extrabold">{targetCareer || 'Software Engineer'}</span>
+                    </div>
+                  </div>
+
+                  {/* Alignment Meter Bar */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-xs font-black">
+                      <span className="text-gray-400 uppercase tracking-widest">Compatibility matching</span>
+                      <span style={{ color: alignmentScoreAndFeedback.score >= 75 ? '#10b981' : alignmentScoreAndFeedback.score >= 50 ? '#f59e0b' : '#ef4444' }}>
+                        {alignmentScoreAndFeedback.score}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-150 dark:bg-gray-900 h-2.5 rounded-full overflow-hidden">
+                      <div 
+                        style={{ 
+                          width: `${alignmentScoreAndFeedback.score}%`, 
+                          backgroundColor: alignmentScoreAndFeedback.score >= 75 ? '#10b981' : alignmentScoreAndFeedback.score >= 50 ? '#f59e0b' : '#ef4444' 
+                        }} 
+                        className="h-full rounded-full transition-all duration-1000 ease-out" />
+                    </div>
+                  </div>
+
+                  {/* Alignment Feedback text */}
+                  <div className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed italic bg-fuchsia-500/[0.03] p-4 rounded-2xl border border-fuchsia-500/10 mb-4 font-medium">
+                     "{alignmentScoreAndFeedback.feedback}"
+                  </div>
+
+                  {/* Career parameters rating */}
+                  <div className="pt-2 space-y-3 border-t border-gray-100 dark:border-gray-800/80">
+                     <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Typical Job Characteristics</span>
+
+                     <div className="grid grid-cols-2 gap-3 text-[10px]">
+                        <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800/80">
+                           <span className="text-gray-405 block uppercase font-bold tracking-wider mb-1 leading-none">🧠 Autonomy</span>
+                           <span className="text-gray-950 dark:text-white font-mono font-black">{alignmentScoreAndFeedback.factors.flexibility}/10 (Self-Direction)</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800/80">
+                           <span className="text-gray-405 block uppercase font-bold tracking-wider mb-1 leading-none">⚡ stress level</span>
+                           <span className="text-gray-950 dark:text-white font-mono font-black">{alignmentScoreAndFeedback.factors.stress}/10 (Severe demands)</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800/80">
+                           <span className="text-gray-405 block uppercase font-bold tracking-wider mb-1 leading-none">⏰ Weekly hours</span>
+                           <span className="text-gray-950 dark:text-white font-mono font-black">{alignmentScoreAndFeedback.factors.hours} hours/week</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800/80">
+                           <span className="text-gray-405 block uppercase font-bold tracking-wider mb-1 leading-none">🏢 Environment</span>
+                           <span className="text-gray-950 dark:text-white font-bold tracking-tight text-[9px] truncate block">{alignmentScoreAndFeedback.factors.environment}</span>
+                        </div>
+                     </div>
+                  </div>
+                </div>
+
+                {/* Recommended Career selector - Cross-linking directly */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700/60 shadow-sm text-left relative z-20">
+                   <h4 className="text-xs font-black uppercase tracking-widest text-gray-404 mb-2 font-brand">🧬 Compare Goal Careers</h4>
+                   <p className="text-[11px] text-gray-400 mb-4 leading-normal">
+                     Tap on any recommended career choice to set it as your target and view dynamic alignment and wellbeing updates in real-time!
+                   </p>
+
+                   {/* Recommended buttons */}
+                   <div className="flex flex-wrap gap-2">
+                     {(userState.recommendations?.length ? userState.recommendations : [
+                        { title: 'Software Engineer', matchScore: 92 },
+                        { title: 'UX Designer', matchScore: 85 },
+                        { title: 'Product Manager', matchScore: 78 },
+                        { title: 'Data Scientist', matchScore: 88 },
+                        { title: 'Technical Writer', matchScore: 90 }
+                     ]).slice(0, 5).map((rec: any, idx) => (
+                       <button
+                         key={idx}
+                         onClick={() => {
+                           onUpdateUserState({ targetCareer: rec.title });
+                           setCareerInput(rec.title);
+                         }}
+                         className={`px-3.5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 border cursor-pointer hover:scale-[1.03] active:scale-95 ${
+                            (targetCareer === rec.title || (!targetCareer && rec.title === 'Software Engineer'))
+                            ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 border-fuchsia-500 text-fuchsia-600 dark:text-fuchsia-300 font-extrabold shadow-sm'
+                            : 'bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-800 text-gray-650 dark:text-gray-400'
+                         }`}
+                       >
+                         {rec.title} ({rec.matchScore ?? rec.matchValue ?? 85}%)
+                       </button>
+                     ))}
+                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Trade-Off Explorer Section */}
+            <div className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-700/60 shadow-sm relative overflow-hidden text-left">
+               <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none">
+                 <Scale className="w-56 h-56 text-violet-500" />
+               </div>
+
+               <div className="mb-6 relative z-10">
+                 <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center font-brand">
+                   <Scale className="w-5 h-5 mr-2 text-violet-500 animate-pulse" /> High-Level Trade-Off Explorer
+                 </h3>
+                 <p className="text-xs text-gray-400 mt-1 pb-1">
+                   Adjust your focus allocations below. High salaries, perfect work hours, and calendar flexibility directly compete.
+                 </p>
+               </div>
+
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center relative z-10">
+                  {/* Sliders for trade-off */}
+                  <div className="space-y-6">
+                     <div>
+                        <div className="flex justify-between items-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                           <span>💵 Salary Priority: <span className="text-emerald-500 font-extrabold">{tradeOffSalary}%</span></span>
+                           <span className="text-[10px] italic text-gray-400">Yields corporate demands</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={tradeOffSalary} 
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setTradeOffSalary(val);
+                            savePreferences({ salaryVsHoursVsFlex: { salary: val, hours: tradeOffHours, flexibility: tradeOffFlex } });
+                          }}
+                          className="w-full accent-emerald-500 bg-gray-100 dark:bg-gray-900 h-2 rounded-lg cursor-pointer"
+                        />
+                     </div>
+
+                     <div>
+                        <div className="flex justify-between items-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                           <span>⏰ Maximum Leisure / Free Time: <span className="text-violet-500 font-extrabold">{tradeOffHours}%</span></span>
+                           <span className="text-[10px] italic text-gray-400">Reduces occupational burnout</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={tradeOffHours} 
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setTradeOffHours(val);
+                            savePreferences({ salaryVsHoursVsFlex: { salary: tradeOffSalary, hours: val, flexibility: tradeOffFlex } });
+                          }}
+                          className="w-full accent-violet-500 bg-gray-100 dark:bg-gray-900 h-2 rounded-lg cursor-pointer"
+                        />
+                     </div>
+
+                     <div>
+                        <div className="flex justify-between items-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                           <span>🤸 Workspace & Schedule Flexibility: <span className="text-pink-500 font-extrabold">{tradeOffFlex}%</span></span>
+                           <span className="text-[10px] italic text-gray-400">Demands highly specialized skills</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={tradeOffFlex} 
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setTradeOffFlex(val);
+                            savePreferences({ salaryVsHoursVsFlex: { salary: tradeOffSalary, hours: tradeOffHours, flexibility: val } });
+                          }}
+                          className="w-full accent-pink-500 bg-gray-100 dark:bg-gray-900 h-2 rounded-lg cursor-pointer"
+                        />
+                     </div>
+                  </div>
+
+                  {/* Output interpretation Card based on values */}
+                  <div className="p-6 rounded-3xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800 text-xs">
+                     <span className="text-[10px] font-black uppercase tracking-widest text-[#4f46e5] block mb-2 leading-none">🧠 Trade-Off Engine Insights</span>
+                     
+                     {(() => {
+                       if (tradeOffSalary > 65 && tradeOffHours > 60) {
+                         return (
+                           <div className="space-y-3">
+                             <p className="font-semibold text-gray-800 dark:text-white">
+                               "Ambition Conflict Warning"
+                             </p>
+                             <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                               Demanding maximum salary while expecting low work hours is an extremely luxurious, rare combination. To achieve this, focus heavily on high-leverage assets like independent software micro-businesses, niche freelance consultancies, or scaling royalty structures. Standard corporate listings will rarely support both.
+                             </p>
+                           </div>
+                         );
+                       }
+                       if (tradeOffSalary > 70) {
+                         return (
+                           <div className="space-y-3">
+                             <p className="font-semibold text-gray-800 dark:text-white">
+                               "Corporate Peak Earning Mode"
+                             </p>
+                             <p className="text-gray-550 dark:text-gray-400 leading-relaxed">
+                               You are prioritizing commercial returns. Careers like Investment Banking, Chief Officers, or Specialized Medical practitioners fit this. Prepare, however, for intense schedule constraints: typical work hours range from 50 to 75 hours per week, with limited workspace freedom.
+                             </p>
+                           </div>
+                         );
+                       }
+                       if (tradeOffFlex > 70 && tradeOffHours > 60) {
+                         return (
+                           <div className="space-y-3">
+                             <p className="font-semibold text-gray-800 dark:text-white">
+                               "Autonomous Lifestyle Designer"
+                             </p>
+                             <p className="text-gray-550 dark:text-gray-400 leading-relaxed">
+                               Maximum flexibility preference. You value customized schedules, relaxed paces, and geographical freedom above all. This aligns with copywriting, content creation, indie hacking, and remote web consultants. Income potential relies heavily on self-promotion, but stress index scores remain extremely comfortable.
+                             </p>
+                           </div>
+                         );
+                       }
+                       return (
+                         <div className="space-y-3">
+                           <p className="font-semibold text-gray-800 dark:text-white">
+                             "Balanced Integration"
+                           </p>
+                           <p className="text-gray-550 dark:text-gray-400 leading-relaxed">
+                             A healthy, standard lifestyle balance. Your parameters reflect realistic, stable conditions: a dynamic workspace offering standard hybrid schedules (38-42 work hours per week) combined with competitive middle-tier salaries. Classic in technology sectors, product companies, and institutional agencies.
+                           </p>
+                         </div>
+                       );
+                     })()}
+                  </div>
+               </div>
+            </div>
+
+            {/* Periodic Check-In Segment */}
+            <div className="bg-gradient-to-r from-violet-900/40 via-fuchsia-900/40 to-pink-900/40 border border-fuchsia-100/10 dark:border-fuchsia-900/30 p-6 md:p-8 rounded-[2.5rem] shadow-xl text-white text-left">
+               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <h3 className="text-lg font-bold flex items-center font-brand">
+                      <RotateCcw className="w-5 h-5 mr-2 text-fuchsia-400 animate-spin-slow animate-pulse" /> Periodic Lifestyle Check-In
+                    </h3>
+                    <p className="text-xs text-white/80 mt-1 max-w-xl">
+                      Are your core life priorities shifting? Execute a periodic check-in to securely store your active desired work-life balance and autonomy metrics in a historical log timeline below.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCheckInLog}
+                    className="self-start md:self-auto bg-white text-fuchsia-700 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-xl duration-300 pointer-events-auto shrink-0 font-brand"
+                  >
+                    🚀 Track Check-In
+                  </button>
+               </div>
+
+               {/* Log Table of past check ins */}
+               <div className="mt-8 border-t border-white/10 pt-6">
+                  <span className="block text-[10px] font-black uppercase text-fuchsia-400 tracking-widest mb-4">
+                    Check-In progress logs
+                  </span>
+
+                  {userState.lifestylePreferences?.checkInHistory && userState.lifestylePreferences.checkInHistory.length > 0 ? (
+                    <div className="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                      {userState.lifestylePreferences.checkInHistory.map((hist, hIdx) => (
+                        <div key={hIdx} className="bg-white/5 border border-white/5 p-3.5 rounded-2xl flex justify-between items-center text-xs">
+                          <div className="flex items-center gap-3">
+                             <div className="w-2 h-2 rounded-full bg-fuchsia-500 shadow-glow" />
+                             <div>
+                               <span className="font-mono font-bold text-white/90">{hist.date}</span>
+                               <span className="text-white/40 mx-2">|</span>
+                               <span className="text-white/60">Target Path:</span> <span className="font-bold text-white/95">{hist.targetRole}</span>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                             <div>
+                               <span className="text-white/50 text-[10px] uppercase font-bold mr-1">Work Balance:</span>
+                               <span className="font-bold font-mono text-fuchsia-400">{hist.workLifeBalance}/10</span>
+                             </div>
+                             <div>
+                               <span className="text-white/50 text-[10px] uppercase font-bold mr-1">Autonomy:</span>
+                               <span className="font-bold font-mono text-violet-405 text-purple-400">{hist.autonomy}/10</span>
+                             </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 bg-white/5 border border-dashed border-white/10 rounded-2xl text-xs text-white/50">
+                       No logged check-ins yet. Adjust sliders and click "Track Check-In" above to begin tracking.
+                    </div>
+                  )}
+               </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'routine' && (
             <div className="animate-slide-right duration-300">
               <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8 flex flex-col md:flex-row gap-4 items-end">
@@ -471,18 +1441,199 @@ export const HabitEnhancer: React.FC<HabitEnhancerProps> = ({
 
         {activeTab === 'exercise' && (
             <div className="animate-slide-right duration-300">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8 flex flex-col md:flex-row gap-4 items-end">
-                  <div className="flex-1 w-full">
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">Fitness Goal</label>
-                      <input type="text" className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium" placeholder="e.g. Build Muscle, Lose Weight, Yoga for Flexibility" value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} />
-                  </div>
-                  <button onClick={handleGeneratePlan} disabled={exerciseLoading || !fitnessGoal} className={`w-full md:w-auto px-8 py-3 ${theme.button} text-white rounded-xl transition disabled:opacity-50 flex items-center justify-center whitespace-nowrap shadow-lg ${theme.shadow} font-bold`} >
-                      {exerciseLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Dumbbell className="w-5 h-5 mr-2" />}
-                      Create Workout Plan
-                  </button>
-              </div>
+                {/* Visual Selectors Control Panel */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 mb-8 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-950 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-blue-500 animate-pulse" /> Custom Fitness Configuration
+                    </h3>
+                    
+                    <div className="flex flex-col md:flex-row gap-6 mb-6">
+                        {/* Gender selection */}
+                        <div className="flex-1">
+                            <span className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">Anatomy Outline Silhouette</span>
+                            <div className="flex bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-1.5 rounded-2xl w-full">
+                                <button
+                                    onClick={() => setSelectedGender('Male')}
+                                    className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedGender === 'Male' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                                >
+                                    Male Model
+                                </button>
+                                <button
+                                    onClick={() => setSelectedGender('Female')}
+                                    className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${selectedGender === 'Female' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                                >
+                                    Female Model
+                                </button>
+                            </div>
+                        </div>
 
-              {plan && (
+                        {/* Focus Type Selection */}
+                        <div className="flex-1">
+                            <span className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">Target Focus Coverage</span>
+                            <div className="flex bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-1.5 rounded-2xl w-full">
+                                <button
+                                    onClick={() => { setFocusType('whole'); setSelectedMuscle(null); }}
+                                    className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${focusType === 'whole' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                                >
+                                    Whole Body Fitness
+                                </button>
+                                <button
+                                    onClick={() => setFocusType('muscle')}
+                                    className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${focusType === 'muscle' ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                                >
+                                    Particular Muscle Area
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Particular Area Muscle Anatomy display */}
+                    {focusType === 'muscle' && (
+                        <div className="mb-6">
+                            <span className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 ml-1">Interactive Anatomical Selector MAP</span>
+                            <div className="flex flex-col lg:flex-row gap-8 items-stretch justify-center p-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-3xl">
+                                {/* Front Model */}
+                                <div className="flex-1 flex flex-col items-center p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-2xl">
+                                    <span className="text-xs font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-4">Anterior (Front View)</span>
+                                    <svg viewBox="0 0 160 300" className="w-48 h-96 drop-shadow-md">
+                                        {Object.entries(PathsByGender[selectedGender].front).map(([key, d]) => {
+                                            if (key === 'head') {
+                                                return (
+                                                    <path 
+                                                        key={key} 
+                                                        d={d} 
+                                                        className="fill-gray-300 dark:fill-gray-600 stroke-white dark:stroke-gray-800"
+                                                    />
+                                                );
+                                            }
+                                            const muscleName = MuscleMapping[key] || "Neutral";
+                                            const isSelected = selectedMuscle === muscleName;
+                                            return (
+                                                <path
+                                                    key={key}
+                                                    d={d}
+                                                    className={`transition-all duration-200 cursor-pointer stroke-white dark:stroke-gray-900 ${
+                                                        isSelected 
+                                                            ? 'fill-blue-500 hover:fill-blue-600 drop-shadow-lg' 
+                                                            : 'fill-gray-200 dark:fill-gray-700 hover:fill-blue-300 dark:hover:fill-blue-800/85'
+                                                    }`}
+                                                    onClick={() => {
+                                                        setSelectedMuscle(muscleName);
+                                                        setFitnessGoal(muscleName);
+                                                    }}
+                                                >
+                                                    <title>{muscleName}</title>
+                                                </path>
+                                            );
+                                        })}
+                                    </svg>
+                                </div>
+
+                                {/* Back Model */}
+                                <div className="flex-1 flex flex-col items-center p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-2xl">
+                                    <span className="text-xs font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-4">Posterior (Back View)</span>
+                                    <svg viewBox="0 0 160 300" className="w-48 h-96 drop-shadow-md">
+                                        {Object.entries(PathsByGender[selectedGender].back).map(([key, d]) => {
+                                            if (key === 'head') {
+                                                return (
+                                                    <path 
+                                                        key={key} 
+                                                        d={d} 
+                                                        className="fill-gray-300 dark:fill-gray-600 stroke-white dark:stroke-gray-800"
+                                                    />
+                                                );
+                                            }
+                                            const muscleName = MuscleMapping[key] || "Neutral";
+                                            const isSelected = selectedMuscle === muscleName;
+                                            return (
+                                                <path
+                                                    key={key}
+                                                    d={d}
+                                                    className={`transition-all duration-200 cursor-pointer stroke-white dark:stroke-gray-900 ${
+                                                        isSelected 
+                                                            ? 'fill-blue-500 hover:fill-blue-600 drop-shadow-lg' 
+                                                            : 'fill-gray-200 dark:fill-gray-700 hover:fill-blue-300 dark:hover:fill-blue-800/85'
+                                                    }`}
+                                                    onClick={() => {
+                                                        setSelectedMuscle(muscleName);
+                                                        setFitnessGoal(muscleName);
+                                                    }}
+                                                >
+                                                    <title>{muscleName}</title>
+                                                </path>
+                                            );
+                                        })}
+                                    </svg>
+                                </div>
+
+                                {/* Instant Exercises Display Panel */}
+                                <div className="flex-1 flex flex-col justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 p-6 rounded-2xl">
+                                    <div>
+                                        {selectedMuscle ? (
+                                            <div className="animate-in fade-in duration-350">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <span className="w-3 h-3 rounded-full bg-blue-500 shadow-md shadow-blue-200 animate-pulse"></span>
+                                                    <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider">{selectedMuscle} Exercises</h4>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    {(LOCAL_EXERCISES[selectedMuscle] || []).map((ex, idx) => (
+                                                        <div key={idx} className="p-3.5 bg-blue-50/50 dark:bg-blue-950/10 border border-blue-100/50 dark:border-blue-900/30 rounded-2xl hover:scale-[1.01] transition-transform">
+                                                            <div className="flex justify-between items-baseline mb-1">
+                                                                <span className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-tight">{ex.name}</span>
+                                                                <span className="text-[10px] font-mono font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2.5 py-0.5 rounded-lg shrink-0 ml-2">{ex.sets} Sets × {ex.reps}</span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400 leading-normal">{ex.tips}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-16 text-center h-full">
+                                                <Dumbbell className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4 animate-bounce" />
+                                                <h4 className="font-bold text-gray-800 dark:text-gray-200 mb-1">Tap a Muscle Blueprint</h4>
+                                                <p className="text-xs text-gray-400 dark:text-gray-400 max-w-xs leading-normal">Select coordinates on the anatomical shape models to immediately display targeted exercise sets, or type in the input bar below.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {selectedMuscle && (
+                                        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700/50">
+                                            <p className="text-[11px] text-blue-500 dark:text-blue-400 font-semibold text-center italic">
+                                                Selected: {selectedMuscle} • Click generate below for a full 7-day calendar plan
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Input Bar & Create Button */}
+                    <div className="flex flex-col md:flex-row gap-4 items-end bg-gray-50 dark:bg-gray-900/55 p-4 rounded-3xl border border-gray-200 dark:border-gray-700/80">
+                        <div className="flex-1 w-full">
+                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
+                                {focusType === 'whole' ? 'Fitness Goal / Workout Focus' : 'Selected Muscle Area (Can edit or type manually)'}
+                            </label>
+                            <input 
+                                type="text" 
+                                className="w-full px-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-sm" 
+                                placeholder={focusType === 'whole' ? "e.g. Lose 10kg in 3 months, Crossfit Beginner, Yoga for core strength..." : "e.g. Chest, Quads, Triceps, Calves, upper back..."} 
+                                value={fitnessGoal} 
+                                onChange={(e) => setFitnessGoal(e.target.value)} 
+                            />
+                        </div>
+                        <button 
+                            onClick={handleGeneratePlan} 
+                            disabled={exerciseLoading || !fitnessGoal} 
+                            className={`w-full md:w-auto px-8 py-3.5 ${theme.button} text-white rounded-2xl transition disabled:opacity-50 flex items-center justify-center whitespace-nowrap shadow-lg ${theme.shadow} font-black text-sm uppercase tracking-wider`}
+                        >
+                            {exerciseLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Sparkles className="w-5 h-5 mr-2" />}
+                            Create Workout Plan
+                        </button>
+                    </div>
+                </div>
+
+                {plan && (
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                        <div className="lg:col-span-8 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                           <div className="flex items-center justify-between mb-6">

@@ -67,7 +67,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, t
       }`}>
         
         {/* Futuristic Glass Background */}
-        <div className="absolute inset-0 bg-white/70 dark:bg-gray-950/80 backdrop-blur-3xl z-0"></div>
+        <div className="absolute inset-0 bg-white/70 dark:bg-gray-950 backdrop-blur-3xl z-0"></div>
         <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full blur-[80px] opacity-30 animate-pulse-slow" style={{ backgroundColor: themeColor }}></div>
         <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full blur-[80px] opacity-20 bg-purple-500 animate-pulse-slow"></div>
 

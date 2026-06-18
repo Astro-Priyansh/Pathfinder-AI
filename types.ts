@@ -9,7 +9,9 @@ export enum AppView {
   CAREER_RECOMMENDER = 'CAREER_RECOMMENDER',
   HABIT_ENHANCER = 'HABIT_ENHANCER',
   COLLEGE_FINDER = 'COLLEGE_FINDER',
-  SALARY_PREDICTOR = 'SALARY_PREDICTOR',
+  JOB_LISTINGS = 'JOB_LISTINGS',
+  PROJECT_LAB = 'PROJECT_LAB',
+  ROI_RUNWAY = 'ROI_RUNWAY',
   SETTINGS = 'SETTINGS',
 }
 
@@ -23,7 +25,9 @@ export interface UserSettings {
   isPro: boolean;
   animationsEnabled: boolean;
   dynamicThemeEnabled: boolean;
+  themeSource?: 'manual' | 'personality' | 'career';
   region: string;
+  uiStyle?: 'steampunk' | 'solarpunk' | 'modern' | 'futuristic';
   calendarConnections?: {
     local: boolean;
     google: boolean;
@@ -53,9 +57,12 @@ export interface PersonalityTrait {
 
 export interface PersonalityResult {
   traits: PersonalityTrait[];
+  mbti?: string;
   summary: string;
   strengths: string[];
+  weaknesses?: string[];
   workStyle: string;
+  interactionStyle?: string;
   suggestedCareers: string[];
 }
 
@@ -84,6 +91,12 @@ export interface SkillGapAnalysis {
   missingSkills: string[];
   masteredSkills: string[];
   recommendations: string[];
+  skillsData?: {
+    skill: string;
+    currentLevel: number;
+    targetLevel: number;
+    importance: string;
+  }[];
 }
 
 export interface SkillProficiency {
@@ -117,6 +130,8 @@ export interface ResumeData {
   experience: { role: string; company: string; duration: string; description: string }[];
   education: { degree: string; school: string; year: string }[];
   skills: string[];
+  projects?: { title: string; subtitle?: string; duration?: string; description: string }[];
+  certifications?: { name: string; issuer?: string; year?: string }[];
 }
 
 export interface CareerRecommendation {
@@ -126,6 +141,8 @@ export interface CareerRecommendation {
   outlook: string;
   reason: string;
   jobRoles: string[];
+  skills?: string[];
+  salaryProjections?: { year: string; salary: number }[];
 }
 
 export interface SimulationTurn {
@@ -200,6 +217,28 @@ export interface College {
   cutoffs: string;
   eligibility: string;
   courses: string[];
+  coopScore?: number;
+  coopDetails?: {
+    campusEmployment: string;
+    coOpInternships: string;
+    industryPartnerships: string;
+    loanOffsetEstimate: string;
+  };
+  colIndex?: number;
+  colDetails?: {
+    rentIndex: number;
+    grocIndex: number;
+    transitIndex: number;
+    annualEstRent: string;
+    annualEstTotalCOL: string;
+    livingContext: string;
+  };
+  alumniPipeline?: {
+    industrySectors: { sector: string; percentage: number }[];
+    topEmployers: string[];
+    topRegions: string[];
+    overview: string;
+  };
 }
 
 export interface CollegeResult {
@@ -221,6 +260,13 @@ export interface SalaryTrend {
   salary: number;
 }
 
+export interface JobListing {
+  title: string;
+  company: string;
+  location: string;
+  url: string;
+}
+
 export interface SalaryInsights {
   role: string;
   location: string;
@@ -230,6 +276,8 @@ export interface SalaryInsights {
   marketOutlook: string;
   risingRoles: string[];
   decliningRoles: string[];
+  trendingSkills: string[];
+  jobListings: JobListing[];
 }
 
 export interface ChatMessage {
@@ -237,6 +285,29 @@ export interface ChatMessage {
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+}
+
+export interface ProjectIdea {
+  title: string;
+  description: string;
+  skillsAddressed: string[];
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  estimatedTime: string;
+  keyFeatures: string[];
+  stepByStepGuide: string[];
+  techStack: string[];
+  whyThisProject: string;
+}
+
+export interface LifestylePreference {
+  workLifeBalance: number; // 1-10
+  travelTolerance: 'none' | 'medium' | 'high';
+  incomePriority: 'low' | 'medium' | 'high';
+  autonomy: number; // 1-10
+  locationPref: 'remote' | 'hybrid' | 'onsite';
+  salaryVsHoursVsFlex: { salary: number; hours: number; flexibility: number }; // 0-100 sum up
+  lastCheckIn?: string;
+  checkInHistory?: { date: string; workLifeBalance: number; autonomy: number; targetRole: string }[];
 }
 
 export interface UserState {
@@ -255,5 +326,42 @@ export interface UserState {
   dietPlan: DietPlan | null;
   collegeResults: CollegeResult | null;
   salaryInsights: SalaryInsights | null;
+  projectIdeas: ProjectIdea[] | null;
   settings: UserSettings;
+  lifestylePreferences?: LifestylePreference;
 }
+
+export interface PersonalizedCollegeQueryParams {
+  fieldOfStudy: string;
+  studyLevel: 'UG' | 'PG' | 'PhD';
+  academicsGrade: string; // 12th percentage, CGPA, etc.
+  entranceExamsChecked: string[]; // Exams the user gave/will give
+  entranceScores: string; // Score achieved/expected
+  annualBudget: string; // Budget limit string
+  scholarshipNeeded: 'High' | 'Medium' | 'Low';
+  campusLifePreferences: string[]; // Multi-selectable options
+  hostelNeeded: boolean;
+  locationPreference: string; // Country or regional preference
+  mattersMostPriorities: string[]; // Placements, Research, High ROI, MNC connections, Campus facilities, Alumni Network
+  institutionTypes: string[]; // Public, Private, Liberal Arts, Technical
+  rankingPreference: 'QS World' | 'Times Higher Education' | 'US News' | 'NIRF / Domestic' | 'No preference';
+  personalPreferences: string; // Open-form text of extra requirements
+}
+
+export interface PersonalizedCollege extends College {
+  fitScore: number; // 0-100 indicating match score
+  fitReasons: string[]; // reasons like "Matches your GRE of 320", "Fully within budget", etc.
+  scholarshipOpportunities: string; // details about scholarships available
+  hostelFacilities: string; // information about campus housing
+  campusLifeDetails: string; // description of the social/campus atmosphere
+  overallRating?: number; // float rating 1.0 - 5.0
+  institutionType?: string; // e.g. "Public", "Private", etc.
+}
+
+export interface PersonalizedCollegeResult {
+  query: PersonalizedCollegeQueryParams;
+  matchedColleges: PersonalizedCollege[];
+  colleges?: PersonalizedCollege[];
+  analysisOverview?: string;
+}
+

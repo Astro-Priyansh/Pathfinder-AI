@@ -27,6 +27,43 @@ export const CareerRoadmapTool: React.FC<CareerRoadmapProps> = ({ onComplete, ex
   const [savedStatus, setSavedStatus] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
 
+  // Drag and Drop States and Reordering Logic
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    setDragOverIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex || !roadmap) return;
+
+    const newSteps = [...roadmap.steps];
+    const [draggedItem] = newSteps.splice(draggedIndex, 1);
+    newSteps.splice(targetIndex, 0, draggedItem);
+
+    const newRoadmap = { ...roadmap, steps: newSteps };
+    setRoadmap(newRoadmap);
+    onComplete(newRoadmap);
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   // Story Mode State
   const [storyLoading, setStoryLoading] = useState(false);
   const [simulationHistory, setSimulationHistory] = useState<SimulationTurn[]>([]);
@@ -151,11 +188,26 @@ export const CareerRoadmapTool: React.FC<CareerRoadmapProps> = ({ onComplete, ex
     
     return (
       <div className="relative group">
-        <div className={`
-          bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border-2 transition-all duration-500 
-          hover:shadow-2xl hover:-translate-y-2
-          ${step.completed ? 'border-green-400 opacity-90' : 'border-gray-100 dark:border-gray-700'}
-        `}>
+        <div 
+          draggable={true}
+          onDragStart={(e) => handleDragStart(e, index)}
+          onDragOver={(e) => handleDragOver(e, index)}
+          onDragEnd={handleDragEnd}
+          onDrop={(e) => handleDrop(e, index)}
+          className={`
+            card-base cursor-grab active:cursor-grabbing bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border-2 transition-all duration-300 
+            hover:shadow-2xl hover:-translate-y-1.5
+            ${step.completed ? 'border-green-400 opacity-90' : 'border-gray-100 dark:border-gray-700'}
+            ${draggedIndex === index ? 'opacity-30 border-dashed border-indigo-400 scale-95' : ''}
+            ${dragOverIndex === index ? 'border-pink-500 scale-[1.03] shadow-lg shadow-pink-500/10 dark:shadow-none bg-pink-50/5 dark:bg-pink-950/5' : ''}
+          `}
+        >
+          {/* Visual Path-Connecting Element to next milestone in Grid */}
+          {roadmap && roadmap.steps && index < (roadmap.steps.length - 1) && (
+            <div className="path-connector absolute -bottom-4 right-8 w-8 h-8 rounded-full bg-white dark:bg-gray-900 border-2 border-indigo-400 dark:border-indigo-600 flex items-center justify-center text-indigo-500 hover:text-pink-500 shadow-md z-20 no-print transition-colors duration-300">
+                <ArrowDown className="w-4 h-4" />
+            </div>
+          )}
           {/* Illustrative Image */}
           <div className="h-48 w-full overflow-hidden relative">
             <img src={imageUrl} alt={step.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
@@ -400,9 +452,16 @@ export const CareerRoadmapTool: React.FC<CareerRoadmapProps> = ({ onComplete, ex
                       {planType === 'visual' ? (
                         <div className="space-y-12 pb-20">
                            {/* Visual Flow Tutorial Hint */}
-                           <div className="bg-cyan-50/50 dark:bg-cyan-900/10 border border-cyan-100 dark:border-cyan-800 p-4 rounded-2xl flex items-center gap-3 no-print">
-                              <MousePointer2 className="w-5 h-5 text-cyan-500" />
-                              <span className="text-xs font-bold text-cyan-800 dark:text-cyan-300 uppercase tracking-widest">Visual Roadmap: Click cards to mark progress. Detailed actions inside.</span>
+                           <div className="bg-cyan-50/50 dark:bg-cyan-900/10 border border-cyan-100 dark:border-cyan-800 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 no-print">
+                              <div className="flex items-center gap-3">
+                                 <MousePointer2 className="w-5 h-5 text-cyan-500 animate-pulse" />
+                                 <span className="text-xs font-bold text-cyan-800 dark:text-cyan-300 uppercase tracking-widest leading-relaxed">
+                                    Visual Roadmap: Click cards to view details/progress. Drag and drop cards to rearrange milestones.
+                                 </span>
+                              </div>
+                              <span className="text-[10px] filter saturate-150 self-start md:self-auto px-2.5 py-1 bg-gradient-to-r from-cyan-500/15 via-indigo-500/15 to-pink-500/15 border border-cyan-300/30 text-cyan-700 dark:text-cyan-400 font-extrabold uppercase tracking-widest rounded-xl hover:scale-105 transition duration-200">
+                                 Drag & Drop Active ⚡
+                              </span>
                            </div>
 
                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 relative">
@@ -520,6 +579,17 @@ export const CareerRoadmapTool: React.FC<CareerRoadmapProps> = ({ onComplete, ex
                       ) : (
                         /* Standard & Advanced Timeline View */
                         <div className="relative space-y-8 pb-12 before:absolute inset-0 before:ml-5 before:h-full before:w-0.5 before:-translate-x-1/2 before:bg-gradient-to-b before:from-violet-500 before:via-fuchsia-500 before:to-transparent before:content-['']">
+                           <div className="bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-100 dark:border-indigo-900/30 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 no-print ml-8 relative z-30 mb-2">
+                              <div className="flex items-center gap-3">
+                                 <MousePointer2 className="w-5 h-5 text-indigo-500 animate-pulse" />
+                                 <span className="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-widest leading-relaxed">
+                                    Progress Timeline: Drag and drop milestone cards to rearrange sequencing and re-order them dynamically.
+                                 </span>
+                              </div>
+                              <span className="text-[10px] filter saturate-150 self-start md:self-auto px-2.5 py-1 bg-gradient-to-r from-violet-500/15 via-fuchsia-500/15 to-indigo-500/15 border border-indigo-300/30 text-indigo-700 dark:text-indigo-400 font-extrabold uppercase tracking-widest rounded-xl hover:scale-105 transition duration-200">
+                                 Reorder Active ⚡
+                              </span>
+                           </div>
                           {(!roadmap.steps || roadmap.steps.length === 0) && (
                               <div className="p-4 bg-red-50 text-red-600 rounded-lg ml-8 no-print">
                                   No steps found. Please try regenerating the plan.
@@ -545,10 +615,25 @@ export const CareerRoadmapTool: React.FC<CareerRoadmapProps> = ({ onComplete, ex
                                        {step.completed ? '✓' : index + 1}
                                   </div>
                                   
-                                  <div className={`flex-1 bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl border shadow-sm transition-all ml-8 md:ml-0 ${
-                                      step.completed ? 'border-green-200 dark:border-green-900/30 opacity-75' : 
-                                      (planType === 'advanced' ? 'border-fuchsia-100 dark:border-fuchsia-900/30' : 'border-violet-100 dark:border-violet-900/30')
-                                  } print:opacity-100 print:border-gray-300 print:shadow-none`}>
+                                  <div 
+                                      draggable={true}
+                                      onDragStart={(e) => handleDragStart(e, index)}
+                                      onDragOver={(e) => handleDragOver(e, index)}
+                                      onDragEnd={handleDragEnd}
+                                      onDrop={(e) => handleDrop(e, index)}
+                                      className={`flex-1 card-base cursor-grab active:cursor-grabbing bg-white dark:bg-gray-800 p-6 md:p-8 rounded-3xl border shadow-sm transition-all ml-8 md:ml-0 ${
+                                          step.completed ? 'border-green-200 dark:border-green-900/30 opacity-75' : 
+                                          (planType === 'advanced' ? 'border-fuchsia-100 dark:border-fuchsia-900/30' : 'border-violet-100 dark:border-violet-900/30')
+                                      } ${draggedIndex === index ? 'opacity-30 border-dashed border-indigo-400 scale-95' : ''} ${
+                                          dragOverIndex === index ? 'border-indigo-500 scale-[1.01] shadow-lg shadow-indigo-500/10 dark:shadow-none bg-indigo-50/5 dark:bg-indigo-950/5' : ''
+                                      } print:opacity-100 print:border-gray-300 print:shadow-none`}
+                                  >
+                                      {/* Visual Path-Connecting Element to next milestone */}
+                                      {roadmap.steps && index < (roadmap.steps.length - 1) && (
+                                        <div className="path-connector absolute -bottom-5 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white dark:bg-gray-900 border-2 border-indigo-450 dark:border-indigo-600 flex items-center justify-center text-indigo-500 hover:text-pink-500 shadow-md z-20 no-print transition-colors duration-300">
+                                            <ArrowDown className="w-4 h-4" />
+                                        </div>
+                                      )}
                                       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
                                           <div className="flex items-center gap-3">
                                             <h3 className={`text-xl font-bold mb-2 md:mb-0 ${step.completed ? 'text-green-700 dark:text-green-300 line-through' : 'text-gray-900 dark:text-white'}`}>{step.title}</h3>

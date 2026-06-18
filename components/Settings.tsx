@@ -7,7 +7,8 @@ import {
   User, Mail, Home, HardDrive, Layout, Server, ArrowRight,
   ChevronRight, Circle, Camera, Calendar, ShieldQuestion,
   ChevronDown, Moon, Sun, Link, CalendarDays,
-  ShieldAlert, Fingerprint, Loader2
+  ShieldAlert, Fingerprint, Loader2,
+  Cog, Sprout
 } from 'lucide-react';
 
 interface SettingsProps {
@@ -71,7 +72,8 @@ export const Settings: React.FC<SettingsProps> = ({
 }) => {
   const [localColor, setLocalColor] = useState(settings.themePrimary);
   const [localAnimations, setLocalAnimations] = useState(settings.animationsEnabled);
-  const [localDynamicTheme, setLocalDynamicTheme] = useState(settings.dynamicThemeEnabled);
+  const [localThemeSource, setLocalThemeSource] = useState<'manual' | 'personality' | 'career'>(settings.themeSource || (settings.dynamicThemeEnabled ? 'personality' : 'manual'));
+  const [localUiStyle, setLocalUiStyle] = useState<'steampunk' | 'solarpunk' | 'modern' | 'futuristic'>(settings.uiStyle || 'modern');
   const [hasChanges, setHasChanges] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -96,6 +98,12 @@ export const Settings: React.FC<SettingsProps> = ({
   });
   const [connectingCal, setConnectingCal] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (settings.calendarConnections) {
+      setCalendarState(settings.calendarConnections);
+    }
+  }, [settings.calendarConnections]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClose = (targetView: AppView) => {
@@ -109,7 +117,9 @@ export const Settings: React.FC<SettingsProps> = ({
     onUpdateSettings({ 
       themePrimary: localColor, 
       animationsEnabled: localAnimations,
-      dynamicThemeEnabled: localDynamicTheme,
+      dynamicThemeEnabled: localThemeSource !== 'manual',
+      themeSource: localThemeSource,
+      uiStyle: localUiStyle,
       calendarConnections: calendarState
     });
     setHasChanges(false);
@@ -200,7 +210,7 @@ export const Settings: React.FC<SettingsProps> = ({
           <div className="sticky top-4 z-50 mb-12">
               <div className={`flex items-center justify-between px-6 py-4 md:px-8 md:py-5 rounded-[2.5rem] border backdrop-blur-3xl transition-all duration-500 shadow-2xl ${
                 isDark 
-                ? 'bg-white/5 border-white/10 shadow-black/40' 
+                ? 'bg-gray-900 border-white/10 shadow-black/40' 
                 : 'bg-white/40 border-white/80 shadow-indigo-100/50'
               }`}>
                 <div className="flex items-center gap-4">
@@ -277,6 +287,93 @@ export const Settings: React.FC<SettingsProps> = ({
                               </div>
                           </div>
 
+                          {/* UI Style Paradigm */}
+                          <div className={`p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 ${isDark ? 'bg-black/20' : 'bg-gray-50'}`}>
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-6 block">Visual Architecture Paradigm</label>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <button 
+                                      type="button"
+                                      onClick={() => { setLocalUiStyle('steampunk'); setLocalColor('#f59e0b'); setHasChanges(true); }}
+                                      className={`flex flex-col md:flex-row items-center gap-5 p-6 rounded-[2rem] border-2 transition-all text-left group ${localUiStyle === 'steampunk' ? 'border-amber-700 bg-white dark:bg-white/5' : 'border-transparent bg-white/20 dark:bg-white/1 hover:border-gray-200 dark:hover:border-white/10'}`}
+                                      style={{ 
+                                          borderColor: localUiStyle === 'steampunk' ? '#b45309' : 'transparent',
+                                          boxShadow: localUiStyle === 'steampunk' ? '0 0 15px rgba(180, 83, 9, 0.4)' : ''
+                                      }}
+                                  >
+                                      <div className="p-4 rounded-2xl" style={{ backgroundColor: 'rgba(180, 83, 9, 0.15)', color: '#b45309' }}>
+                                          <Cog className="w-7 h-7 animate-spin" style={{ animationDuration: '8s' }} />
+                                      </div>
+                                      <div>
+                                          <div className="flex items-center gap-2">
+                                              <h3 className="text-base font-black tracking-tight font-serif uppercase text-amber-700 dark:text-amber-500">Steampunk Vibe</h3>
+                                              {localUiStyle === 'steampunk' && <div className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: '#b45309' }} />}
+                                          </div>
+                                          <p className="text-xs text-gray-500 mt-1 font-serif leading-relaxed">Vintage brass machinery, typewriter style, copper widgets, parchment-soft shades, and classic rivets.</p>
+                                      </div>
+                                  </button>
+
+                                  <button 
+                                      type="button"
+                                      onClick={() => { setLocalUiStyle('solarpunk'); setLocalColor('#14b8a6'); setHasChanges(true); }}
+                                      className={`flex flex-col md:flex-row items-center gap-5 p-6 rounded-[2rem] border-2 transition-all text-left group ${localUiStyle === 'solarpunk' ? 'border-teal-500 bg-white dark:bg-white/5' : 'border-transparent bg-white/20 dark:bg-white/1 hover:border-gray-200 dark:hover:border-white/10'}`}
+                                      style={{ 
+                                          borderColor: localUiStyle === 'solarpunk' ? '#14b8a6' : 'transparent',
+                                          boxShadow: localUiStyle === 'solarpunk' ? '0 0 15px rgba(20, 184, 166, 0.35)' : ''
+                                      }}
+                                  >
+                                      <div className="p-4 rounded-2xl animate-pulse" style={{ backgroundColor: 'rgba(20, 184, 166, 0.15)', color: '#0d9488' }}>
+                                          <Sprout className="w-7 h-7" />
+                                      </div>
+                                      <div>
+                                          <div className="flex items-center gap-2">
+                                              <h3 className="text-base font-black tracking-tight uppercase text-teal-600 dark:text-teal-400">Solarpunk Ecology</h3>
+                                              {localUiStyle === 'solarpunk' && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#14b8a6' }} />}
+                                          </div>
+                                          <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed font-sans">Sun-drenched botanical palettes, clean energy grids, circular curves, and restorative eco-futurism.</p>
+                                      </div>
+                                  </button>
+
+                                  <button 
+                                      type="button"
+                                      onClick={() => { setLocalUiStyle('modern'); setHasChanges(true); }}
+                                      className={`flex flex-col md:flex-row items-center gap-5 p-6 rounded-[2rem] border-2 transition-all text-left group ${localUiStyle === 'modern' ? 'border-indigo-500 bg-white dark:bg-white/5' : 'border-transparent bg-white/20 dark:bg-white/1 hover:border-gray-200 dark:hover:border-white/10'}`}
+                                      style={{ borderColor: localUiStyle === 'modern' ? previewAccentColor : 'transparent' }}
+                                  >
+                                      <div className="p-4 rounded-2xl" style={{ backgroundColor: `${previewAccentColor}15`, color: previewAccentColor }}>
+                                          <Layout className="w-7 h-7" />
+                                      </div>
+                                      <div>
+                                          <div className="flex items-center gap-2">
+                                              <h3 className="text-base font-black tracking-tight">Modern Classic</h3>
+                                              {localUiStyle === 'modern' && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: previewAccentColor }} />}
+                                          </div>
+                                          <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed">Sleek, minimalist elegant grids, soft cards, and fluid transitions.</p>
+                                      </div>
+                                  </button>
+                                  
+                                  <button 
+                                      type="button"
+                                      onClick={() => { setLocalUiStyle('futuristic'); setHasChanges(true); }}
+                                      className={`flex flex-col md:flex-row items-center gap-5 p-6 rounded-[2rem] border-2 transition-all text-left group ${localUiStyle === 'futuristic' ? 'bg-white dark:bg-white/5' : 'border-transparent bg-white/20 dark:bg-white/1 hover:border-gray-200 dark:hover:border-white/10'}`}
+                                      style={{ 
+                                          borderColor: localUiStyle === 'futuristic' ? previewAccentColor : 'transparent', 
+                                          boxShadow: localUiStyle === 'futuristic' ? `0 0 15px ${previewAccentColor}30` : '' 
+                                      }}
+                                  >
+                                      <div className="p-4 rounded-2xl" style={{ backgroundColor: `${previewAccentColor}15`, color: previewAccentColor }}>
+                                          <Cpu className="w-7 h-7" />
+                                      </div>
+                                      <div>
+                                          <div className="flex items-center gap-2">
+                                              <h3 className="text-base font-black tracking-tight font-mono uppercase text-[#06b6d4] dark:text-[#22d3ee]">Futuristic HUD</h3>
+                                              {localUiStyle === 'futuristic' && <div className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: '#22d3ee' }} />}
+                                          </div>
+                                          <p className="text-xs text-gray-500 mt-1 font-medium font-mono leading-relaxed">Neon cyber GLOW, digital grid telemetry patterns, cybertech card elements, and sci-fi aesthetic borders.</p>
+                                      </div>
+                                  </button>
+                              </div>
+                          </div>
+
                           <div>
                               <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em] mb-8 block ml-2">Neural Visual Core</label>
                               <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
@@ -313,16 +410,24 @@ export const Settings: React.FC<SettingsProps> = ({
                                       <div className={`p-3 rounded-2xl ${isDark ? 'bg-white/5 text-fuchsia-400' : 'bg-white text-fuchsia-600 shadow-sm'}`} style={{ color: !isDark ? previewAccentColor : undefined }}>
                                           <Sparkles className="w-6 h-6" />
                                       </div>
-                                      <button onClick={() => { setLocalDynamicTheme(!localDynamicTheme); setHasChanges(true); }} className={`w-14 h-8 rounded-full relative transition-all duration-300 ${localDynamicTheme ? 'bg-emerald-500' : 'bg-gray-300'}`} style={{ backgroundColor: localDynamicTheme ? previewAccentColor : undefined }}>
-                                          <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all duration-300 ${localDynamicTheme ? 'right-1' : 'left-1'}`}></div>
-                                      </button>
                                   </div>
-                                  <h3 className="text-lg font-black">Adaptive</h3>
-                                  <p className="text-xs text-gray-500 mt-1 font-medium">Automatic theme shifting.</p>
+                                  <h3 className="text-lg font-black mb-3">Theme Source</h3>
+                                  <div className="flex gap-1 bg-gray-200/50 dark:bg-black/40 p-1 rounded-2xl">
+                                      {['manual', 'personality', 'career'].map(src => (
+                                          <button
+                                              key={src}
+                                              onClick={() => { setLocalThemeSource(src as any); setHasChanges(true); }}
+                                              className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all ${localThemeSource === src ? 'bg-white dark:bg-gray-700 shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                                              style={{ color: localThemeSource === src ? previewAccentColor : undefined }}
+                                          >
+                                              {src}
+                                          </button>
+                                      ))}
+                                  </div>
                               </div>
                           </div>
 
-                          {localDynamicTheme && (
+                          {localThemeSource !== 'manual' && (
                               <div className={`p-8 rounded-[2.5rem] border border-indigo-100 dark:border-white/10 ${isDark ? 'bg-white/5' : 'bg-indigo-50/50'}`}>
                                   <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.4em] mb-8 flex items-center">
                                       <ShieldCheck className="w-4 h-4 mr-2" style={{ color: previewAccentColor }} /> Sync Progression
@@ -397,30 +502,51 @@ export const Settings: React.FC<SettingsProps> = ({
                       
                       <div className="space-y-4">
                           {[
-                            { id: 'local', label: 'Local Storage', desc: 'Browser sync', icon: Layout },
-                            { id: 'google', label: 'Google Calendar', desc: 'Neural injection', icon: Globe },
-                            { id: 'calendly', label: 'Calendly API', desc: 'Auto scheduling', icon: Link }
-                          ].map((cal) => (
-                            <div key={cal.id} className={`flex items-center justify-between p-5 rounded-[2rem] border border-gray-100 dark:border-white/5 ${isDark ? 'bg-white/5' : 'bg-white'}`}>
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-2xl bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400">
-                                      <cal.icon className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-black text-sm uppercase tracking-widest">{cal.label}</h3>
-                                        <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider">{cal.desc}</p>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={() => handleCalendarToggle(cal.id as any)}
-                                    disabled={connectingCal === cal.id}
-                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${calendarState[cal.id as keyof typeof calendarState] ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-200'}`}
-                                    style={{ backgroundColor: calendarState[cal.id as keyof typeof calendarState] ? previewAccentColor : '' }}
-                                >
-                                    {connectingCal === cal.id ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : calendarState[cal.id as keyof typeof calendarState] ? 'Linked' : 'Link Account'}
-                                </button>
-                            </div>
-                          ))}
+                            { id: 'local', label: 'Local Storage', desc: 'Browser sync', icon: Layout, color: 'text-blue-500' },
+                            { id: 'google', label: 'Google Calendar', desc: 'Neural injection', icon: Globe, color: 'text-red-500' },
+                            { id: 'calendly', label: 'Calendly API', desc: 'Auto scheduling', icon: Link, color: 'text-indigo-500' }
+                          ].map((cal) => {
+                            const isLinked = calendarState[cal.id as keyof typeof calendarState];
+                            return (
+                              <div key={cal.id} className={`flex items-center justify-between p-5 rounded-[2rem] border transition-all duration-300 ${isLinked ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-gray-100 dark:border-white/5 bg-white dark:bg-white/5'}`}>
+                                  <div className="flex items-center gap-4">
+                                      <div className={`p-3 rounded-2xl bg-gray-50 dark:bg-white/5 ${cal.color}`}>
+                                        <cal.icon className="w-5 h-5" />
+                                      </div>
+                                      <div>
+                                          <div className="flex items-center gap-2">
+                                              <h3 className="font-black text-sm uppercase tracking-widest">{cal.label}</h3>
+                                              {isLinked && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
+                                          </div>
+                                          <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider">{isLinked ? 'Active Connection' : cal.desc}</p>
+                                      </div>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                      {isLinked && (
+                                          <div className="hidden sm:flex flex-col items-end mr-2">
+                                              <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Last Sync</span>
+                                              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">Just now</span>
+                                          </div>
+                                      )}
+                                      <button 
+                                          onClick={() => handleCalendarToggle(cal.id as any)}
+                                          disabled={connectingCal === cal.id}
+                                          className={`group relative px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all overflow-hidden ${isLinked ? 'bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-200'}`}
+                                      >
+                                          <span className="relative z-10 flex items-center gap-2">
+                                              {connectingCal === cal.id ? (
+                                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                              ) : isLinked ? (
+                                                  <>Unlink <Trash2 className="w-3 h-3" /></>
+                                              ) : (
+                                                  <>Link Account <ArrowRight className="w-3 h-3" /></>
+                                              )}
+                                          </span>
+                                      </button>
+                                  </div>
+                              </div>
+                            );
+                          })}
                       </div>
                   </section>
               </div>
@@ -504,19 +630,29 @@ export const Settings: React.FC<SettingsProps> = ({
                                           { icon: Globe, label: `${settings.region} Region`, type: 'region' },
                                           { icon: ShieldQuestion, label: user.securityQuestion || 'Unprotected' }
                                       ].map((item, i) => (
-                                          <div key={i} className={`p-4 rounded-3xl border border-gray-50 dark:border-white/5 bg-gray-50 dark:bg-white/5 flex items-center gap-4 transition-colors relative`}>
-                                              <div className="p-2.5 rounded-2xl bg-white dark:bg-white/5 shadow-sm" style={{ color: previewAccentColor }}><item.icon className="w-4 h-4" /></div>
-                                              <div className="flex-1 min-w-0">
-                                                  <span className="text-xs font-bold truncate block">{item.label}</span>
+                                          <div key={i} className={`p-5 rounded-[2rem] border transition-all duration-300 relative group overflow-hidden ${isDark ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-white/60 border-white/80 hover:bg-white shadow-sm hover:shadow-md backdrop-blur-xl'}`}>
+                                              <div className="flex items-center gap-5 relative z-10">
+                                                  <div className="p-3 rounded-2xl bg-white dark:bg-white/5 shadow-sm transition-transform group-hover:scale-110" style={{ color: previewAccentColor }}><item.icon className="w-5 h-5" /></div>
+                                                  <div className="flex-1 min-w-0">
+                                                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">{item.type === 'region' ? 'Geospatial Scope' : 'Neural Link'}</p>
+                                                      <span className="text-sm font-black truncate block tracking-tight">{item.label}</span>
+                                                  </div>
+                                                  {item.type === 'region' && (
+                                                      <div className="flex items-center gap-2">
+                                                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                          <ChevronDown className="w-4 h-4 opacity-30 group-hover:opacity-100 transition-opacity" />
+                                                      </div>
+                                                  )}
                                               </div>
                                               {item.type === 'region' && (
                                                   <>
-                                                      <ChevronDown className="w-3 h-3 opacity-30" />
-                                                      <select value={settings.region} onChange={(e) => onUpdateSettings({ region: e.target.value })} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                      <select value={settings.region} onChange={(e) => onUpdateSettings({ region: e.target.value })} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
                                                           {COUNTRIES.map(r => <option key={r} value={r} className="bg-gray-900 text-white">{r}</option>)}
                                                       </select>
                                                   </>
                                               )}
+                                              {/* Subtle hover blob */}
+                                              <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-full blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500" style={{ backgroundColor: previewAccentColor }}></div>
                                           </div>
                                       ))}
                                   </div>
@@ -625,7 +761,7 @@ export const Settings: React.FC<SettingsProps> = ({
             contain: layout;
         }
         .dark-card {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: #111827; /* gray-900 */
             border-color: rgba(255, 255, 255, 0.08);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }

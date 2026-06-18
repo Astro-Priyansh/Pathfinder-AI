@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, Brain, Heart, TrendingUp, Map, User, FileText, Compass, GraduationCap, Banknote, MessageSquareQuote, Settings as SettingsIcon, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Brain, Heart, TrendingUp, Map, User, FileText, Compass, GraduationCap, Banknote, MessageSquareQuote, Settings as SettingsIcon, Moon, Sun, FlaskConical, Coins } from 'lucide-react';
 import { AppView } from '../types';
 
 interface SidebarProps {
@@ -18,11 +18,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isD
     { id: AppView.PERSONALITY, label: 'Personality Test', icon: Brain },
     { id: AppView.INTERESTS, label: 'Interests Analyzer', icon: Heart },
     { id: AppView.SKILL_GAP, label: 'Skill Gap & Tracker', icon: TrendingUp },
+    { id: AppView.PROJECT_LAB, label: 'AI Project Lab', icon: FlaskConical },
     { id: AppView.CAREER_RECOMMENDER, label: 'Career AI Engine', icon: Compass },
     { id: AppView.ROADMAP, label: 'Career Roadmap', icon: Map },
-    { id: AppView.SALARY_PREDICTOR, label: 'Salary Predictor', icon: Banknote },
+    { id: AppView.JOB_LISTINGS, label: 'Job Listings', icon: Banknote },
     { id: AppView.COLLEGE_FINDER, label: 'College Finder', icon: GraduationCap },
-    { id: AppView.HABIT_ENHANCER, label: 'Habit Enhancer', icon: GraduationCap },
+    { id: AppView.ROI_RUNWAY, label: 'ROI Runway & Finance', icon: Coins },
+    { id: AppView.HABIT_ENHANCER, label: 'Lifestyle Optimizer', icon: Sun },
     { id: AppView.RESUME_BUILDER, label: 'Resume Builder', icon: FileText },
   ];
 

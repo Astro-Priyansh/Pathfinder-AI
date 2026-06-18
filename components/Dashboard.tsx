@@ -3,6 +3,7 @@ import React from 'react';
 import { UserState, AppView } from '../types';
 import { ArrowRight, CheckCircle, Brain, Target, AlertCircle, User, Compass, FileText, Star, Briefcase, Zap, Activity, Clock, Coffee, Map, TrendingUp, GraduationCap, Sparkles } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { AffirmationCard } from './AffirmationCard';
 
 interface StatusCardProps {
   title: string;
@@ -193,7 +194,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Complete these milestones to fully prepare for your career.</p>
                 </div>
-                <div className="flex items-center bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-xl">
+                <div className="flex items-center bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
                     <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mr-2">{journeyProgress}%</span>
                     <span className="text-xs text-indigo-800 dark:text-indigo-300 font-medium uppercase tracking-wide">Overall Ready</span>
                 </div>
@@ -213,7 +214,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
                    const isPartiallyDone = step.progress !== undefined && step.progress > 0 && step.progress < 1;
                    const isFullyDone = step.progress === 1 || step.completed;
                    return (
-                    <div key={idx} className={`relative flex flex-col items-center p-4 rounded-xl border transition-all duration-300 ${isFullyDone ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/30' : isPartiallyDone ? 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200' : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700/50 grayscale opacity-70'}`}>
+                    <div key={idx} className={`relative flex flex-col items-center p-4 rounded-xl border transition-all duration-300 ${isFullyDone ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/30' : isPartiallyDone ? 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800/30' : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700/50 grayscale opacity-70'}`}>
                         {isFullyDone && (
                             <div className="absolute top-2 right-2">
                                 <CheckCircle className="w-4 h-4 text-green-500" />
@@ -453,6 +454,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ userState, onChangeView })
               </div>
           </div>
       )}
+
+      {/* Daily Affirmation and Engagement Block */}
+      <AffirmationCard />
     </div>
   );
 };

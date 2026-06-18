@@ -61,13 +61,20 @@
         }
       }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Special+Elite&family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'Inter', sans-serif;
       }
       .font-brand {
         font-family: 'Outfit', sans-serif;
+      }
+      @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .animate-spin-slow {
+        animation: spin-slow 8s linear infinite;
       }
       @media print {
         .no-print { display: none !important; }
@@ -77,6 +84,1587 @@
       /* Custom utility for view transitions */
       .view-transition {
         animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      /* Futuristic Scrollbar Styling */
+      :root {
+        --scrollbar-thumb: rgba(79, 70, 229, 0.2);
+        --scrollbar-thumb-hover: rgba(79, 70, 229, 0.6);
+        --scrollbar-track: rgba(0, 0, 0, 0.02);
+      }
+
+      .dark {
+        --scrollbar-track: rgba(255, 255, 255, 0.02);
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+        border-radius: 10px;
+        margin: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--scrollbar-thumb-hover);
+        border: 2px solid transparent;
+        background-clip: padding-box;
+      }
+
+      .dark ::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.1);
+      }
+
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: var(--scrollbar-thumb-hover);
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        box-shadow: 0 0 12px var(--scrollbar-thumb-hover);
+      }
+
+      /* Firefox Support */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+      }
+
+      /* ==========================================
+         FUTURISTIC HUD PARADIGM OVERRIDES
+         ========================================== */
+      .futuristic {
+        --cyber-primary: rgba(var(--primary-rgb), 1);
+        --cyber-glow: rgba(var(--primary-rgb), 0.25);
+      }
+
+      /* Transparent overlays isolated to remain invisible while keeping full tap area function */
+      .futuristic select.opacity-0,
+      .futuristic input.opacity-0,
+      .futuristic textarea.opacity-0,
+      .futuristic .opacity-0 select,
+      .futuristic .opacity-0 input {
+        opacity: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 30 !important;
+        cursor: pointer !important;
+      }
+
+      /* Smooth, eye-pleasing Cyber-Grid overlay */
+      .futuristic body::after {
+        content: " ";
+        position: fixed;
+        inset: 0;
+        background-image: 
+          linear-gradient(rgba(18, 16, 35, 0) 50%, rgba(0, 0, 0, 0.12) 50%),
+          linear-gradient(90deg, rgba(var(--primary-rgb), 0.015) 0%, rgba(var(--primary-rgb), 0.005) 50%, rgba(var(--primary-rgb), 0.015) 100%);
+        background-size: 100% 4px, 100% 100%;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.25;
+      }
+
+      /* Sci-fi scanning line animation */
+      .futuristic-scanline {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(to bottom, transparent, rgba(var(--primary-rgb), 0.25), transparent);
+        pointer-events: none;
+        z-index: 10000;
+        opacity: 0.4;
+        animation: cyber-scan 15s linear infinite;
+      }
+
+      @keyframes cyber-scan {
+        0% { transform: translateY(-50px); }
+        100% { transform: translateY(105vh); }
+      }
+
+      /* SPECIFIC TEXT MAPPINGS: Webkit font override to match tech dashboard appearance without breaking icon alignments */
+      .futuristic,
+      .futuristic body,
+      .futuristic p,
+      .futuristic span,
+      .futuristic div,
+      .futuristic input,
+      .futuristic select,
+      .futuristic textarea,
+      .futuristic button,
+      .futuristic label {
+        font-family: "JetBrains Mono", "Fira Code", monospace, sans-serif !important;
+      }
+
+      /* Heading typography with tracking and text neon shadow */
+      .futuristic h1, 
+      .futuristic h2, 
+      .futuristic h3, 
+      .futuristic h4, 
+      .futuristic .font-brand {
+        font-family: 'Outfit', sans-serif !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        font-weight: 800 !important;
+        text-shadow: 0 0 12px rgba(var(--primary-rgb), 0.5), 0 0 2px rgba(var(--primary-rgb), 0.8) !important;
+      }
+
+      /* ==========================================
+         DARK FUTURISTIC (Neon Cyber Dark)
+         ========================================== */
+      .dark.futuristic body,
+      .dark.futuristic .bg-gray-50, 
+      .dark.futuristic .dark\:bg-gray-950,
+      .dark.futuristic .bg-gray-950 {
+        background-color: #02040b !important;
+        background-image: 
+          radial-gradient(circle at 10% 20%, rgba(var(--primary-rgb), 0.08) 0%, transparent 45%),
+          radial-gradient(circle at 90% 80%, rgba(var(--primary-rgb), 0.05) 0%, transparent 45%),
+          linear-gradient(rgba(var(--primary-rgb), 0.015) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(var(--primary-rgb), 0.015) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 100% 100%, 25px 25px, 25px 25px !important;
+      }
+
+      .dark.futuristic .bg-white,
+      .dark.futuristic .dark\:bg-gray-900,
+      .dark.futuristic .bg-white\/95,
+      .dark.futuristic .bg-white\/60,
+      .dark.futuristic .dark\:bg-white\/5,
+      .dark.futuristic .card-base,
+      .dark.futuristic .bg-white\/50,
+      .dark.futuristic .bg-white\/40,
+      .dark.futuristic .dark-card,
+      .dark.futuristic .light-card {
+        background: rgba(4, 7, 18, 0.82) !important;
+        border: 1px solid rgba(var(--primary-rgb), 0.4) !important;
+        box-shadow: 
+          0 10px 30px rgba(0, 0, 0, 0.6), 
+          0 0 15px rgba(var(--primary-rgb), 0.15), 
+          inset 0 0 12px rgba(var(--primary-rgb), 0.05) !important;
+        backdrop-filter: blur(16px) !important;
+        border-radius: 8px !important;
+        color: #f1f5f9 !important;
+        position: relative;
+        overflow: visible !important;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+      }
+
+      /* Active inputs - Dark Mode */
+      .dark.futuristic select,
+      .dark.futuristic input,
+      .dark.futuristic textarea,
+      .dark.futuristic .input-base {
+        background-color: rgba(2, 4, 12, 0.9) !important;
+        border: 1px solid rgba(var(--primary-rgb), 0.5) !important;
+        color: #f8fafc !important;
+        border-radius: 6px !important;
+        box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.1) !important;
+      }
+
+      .dark.futuristic input:focus,
+      .dark.futuristic select:focus,
+      .dark.futuristic textarea:focus {
+        border-color: rgba(var(--primary-rgb), 0.95) !important;
+        box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4), inset 0 0 8px rgba(var(--primary-rgb), 0.1) !important;
+      }
+
+      /* Dark Sidebar HUD & Headers */
+      .dark.futuristic .w-64,
+      .dark.futuristic md\:translate-x-0 {
+        background: rgba(2, 4, 12, 0.96) !important;
+        border-right: 2px solid rgba(var(--primary-rgb), 0.55) !important;
+        box-shadow: 5px 0 25px rgba(var(--primary-rgb), 0.12) !important;
+      }
+
+      .dark.futuristic main div.md\:flex,
+      .dark.futuristic main header,
+      .dark.futuristic .sticky {
+        background: rgba(2, 4, 12, 0.94) !important;
+        border-bottom: 2px solid rgba(var(--primary-rgb), 0.55) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+      }
+
+      /* Select option text for dark dropdowns */
+      .dark.futuristic select option {
+        background-color: #050814 !important;
+        color: #f8fafc !important;
+      }
+
+
+      /* ==========================================
+         LIGHT FUTURISTIC (Ice Cyber Light)
+         ========================================== */
+      html:not(.dark).futuristic body,
+      html:not(.dark).futuristic .bg-gray-50, 
+      html:not(.dark).futuristic .dark\:bg-gray-950,
+      html:not(.dark).futuristic .bg-gray-950 {
+        background-color: #f4f6fc !important;
+        background-image: 
+          radial-gradient(circle at 10% 20%, rgba(var(--primary-rgb), 0.08) 0%, transparent 45%),
+          radial-gradient(circle at 90% 80%, rgba(var(--primary-rgb), 0.04) 0%, transparent 45%),
+          linear-gradient(rgba(var(--primary-rgb), 0.015) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(var(--primary-rgb), 0.015) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 100% 100%, 25px 25px, 25px 25px !important;
+      }
+
+      html:not(.dark).futuristic .bg-white,
+      html:not(.dark).futuristic .dark\:bg-gray-900,
+      html:not(.dark).futuristic .bg-white\/95,
+      html:not(.dark).futuristic .bg-white\/60,
+      html:not(.dark).futuristic .dark\:bg-white\/5,
+      html:not(.dark).futuristic .card-base,
+      html:not(.dark).futuristic .bg-white\/50,
+      html:not(.dark).futuristic .bg-white\/40,
+      html:not(.dark).futuristic .dark-card,
+      html:not(.dark).futuristic .light-card {
+        background: rgba(255, 255, 255, 0.8) !important;
+        border: 1px solid rgba(var(--primary-rgb), 0.35) !important;
+        box-shadow: 
+          0 10px 25px rgba(var(--primary-rgb), 0.06), 
+          0 0 10px rgba(var(--primary-rgb), 0.08), 
+          inset 0 0 10px rgba(255, 255, 255, 0.5) !important;
+        backdrop-filter: blur(16px) !important;
+        border-radius: 8px !important;
+        color: #1e293b !important;
+        position: relative;
+        overflow: visible !important;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+      }
+
+      /* Active inputs - Light Mode */
+      html:not(.dark).futuristic select,
+      html:not(.dark).futuristic input,
+      html:not(.dark).futuristic textarea,
+      html:not(.dark).futuristic .input-base {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid rgba(var(--primary-rgb), 0.35) !important;
+        color: #0f172a !important;
+        border-radius: 6px !important;
+        box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.05) !important;
+      }
+
+      html:not(.dark).futuristic input:focus,
+      html:not(.dark).futuristic select:focus,
+      html:not(.dark).futuristic textarea:focus {
+        border-color: rgba(var(--primary-rgb), 0.85) !important;
+        box-shadow: 0 0 12px rgba(var(--primary-rgb), 0.25), inset 0 0 6px rgba(var(--primary-rgb), 0.05) !important;
+      }
+
+      /* Light Sidebar HUD & Headers */
+      html:not(.dark).futuristic .w-64,
+      html:not(.dark).futuristic md\:translate-x-0 {
+        background: rgba(255, 255, 255, 0.92) !important;
+        border-right: 2px solid rgba(var(--primary-rgb), 0.4) !important;
+        box-shadow: 5px 0 20px rgba(var(--primary-rgb), 0.05) !important;
+      }
+
+      html:not(.dark).futuristic main div.md\:flex,
+      html:not(.dark).futuristic main header,
+      html:not(.dark).futuristic .sticky {
+        background: rgba(255, 255, 255, 0.94) !important;
+        border-bottom: 2px solid rgba(var(--primary-rgb), 0.4) !important;
+        box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.04) !important;
+      }
+
+      /* Select option text for light dropdowns */
+      html:not(.dark).futuristic select option {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+      }
+
+
+      /* ==========================================
+         GENERIC FUTURISTIC PARADIGM ASSETS & BUTTONS
+         ========================================== */
+      /* Laser Accent Top Bar on Core Panels */
+      .futuristic .bg-white::before,
+      .futuristic .dark\:bg-gray-900::before,
+      .futuristic .card-base::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(var(--primary-rgb), 0.85), transparent);
+        box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.6);
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      /* Sidebar Navigation Links Style override */
+      .futuristic nav button {
+        border-radius: 0px !important;
+        border-left: 3px solid transparent !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        font-size: 0.75rem !important;
+        margin-bottom: 2px !important;
+        transition: all 0.2s ease !important;
+      }
+
+      .futuristic nav button[style*="background-color"] {
+        border-left: 3px solid rgba(var(--primary-rgb), 1) !important;
+        background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.16) 0%, transparent 100%) !important;
+        text-shadow: 0 0 8px rgba(var(--primary-rgb), 0.4) !important;
+        box-shadow: inset 2px 0 8px rgba(var(--primary-rgb), 0.08) !important;
+      }
+
+      /* Fully dynamic neon buttons matching current theme colour */
+      .futuristic button[style*="background-color"],
+      .futuristic .btn-primary,
+      .futuristic button.bg-indigo-600,
+      .futuristic button.bg-indigo-500 {
+        background: linear-gradient(135deg, rgba(var(--primary-rgb), 1) 0%, rgba(var(--primary-rgb), 0.75) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        box-shadow: 
+          0 4px 15px rgba(var(--primary-rgb), 0.35), 
+          inset 0 1.5px 3px rgba(255, 255, 255, 0.2) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+        border-radius: 6px !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+
+      .futuristic button[style*="background-color"]:hover,
+      .futuristic .btn-primary:hover,
+      .futuristic button.bg-indigo-600:hover,
+      .futuristic button.bg-indigo-500:hover {
+        transform: translateY(-1px);
+        box-shadow: 
+          0 6px 20px rgba(var(--primary-rgb), 0.5), 
+          inset 0 1.5px 4px rgba(255, 255, 255, 0.3) !important;
+        filter: brightness(1.08);
+      }
+
+      /* Secondary dynamic outline buttons in futuristic view */
+      .futuristic button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]) {
+        border: 1px solid rgba(var(--primary-rgb), 0.55) !important;
+        background: rgba(var(--primary-rgb), 0.06) !important;
+        color: rgba(var(--primary-rgb), 1) !important;
+        text-shadow: 0 0 4px rgba(var(--primary-rgb), 0.15) !important;
+        box-shadow: inset 0 0 6px rgba(var(--primary-rgb), 0.03) !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease !important;
+      }
+
+      .futuristic button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]):hover {
+        background: rgba(var(--primary-rgb), 0.14) !important;
+        border-color: rgba(var(--primary-rgb), 0.85) !important;
+        color: rgba(var(--primary-rgb), 1) !important;
+        box-shadow: 
+          0 0 12px rgba(var(--primary-rgb), 0.25), 
+          inset 0 0 8px rgba(var(--primary-rgb), 0.06) !important;
+      }
+
+      .dark.futuristic button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]) {
+        color: #f1f5f9 !important;
+        text-shadow: 0 0 6px rgba(var(--primary-rgb), 0.3) !important;
+      }
+
+      /* Interactive Muscle Anatomy Highlights & Outlines */
+      .futuristic svg path {
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        stroke-width: 1.5 !important;
+      }
+
+      .futuristic svg path[fill*="none"] {
+        stroke: rgba(var(--primary-rgb), 0.45) !important;
+      }
+
+      .futuristic svg path:hover {
+        filter: drop-shadow(0 0 14px rgba(var(--primary-rgb), 1)) !important;
+        fill: rgba(var(--primary-rgb), 0.4) !important;
+        stroke: #ffffff !important;
+        cursor: crosshair;
+      }
+
+      .futuristic svg path[style*="fill"] {
+        stroke: rgba(var(--primary-rgb), 0.95) !important;
+      }
+
+
+      /* ==========================================
+         STEAMPUNK DIESELPUNK PARADIGM (Immersive Steam Epoch)
+         ========================================== */
+      .steampunk,
+      .steampunk body,
+      .steampunk p,
+      .steampunk span,
+      .steampunk div,
+      .steampunk input,
+      .steampunk select,
+      .steampunk textarea,
+      .steampunk button,
+      .steampunk label {
+        font-family: 'Special Elite', 'Georgia', 'Courier New', Courier, serif !important;
+        letter-spacing: 0.01em !important;
+      }
+
+      .steampunk h1, 
+      .steampunk h2, 
+      .steampunk h3, 
+      .steampunk h4, 
+      .steampunk .font-brand {
+        font-family: 'Playfair Display', 'Times New Roman', Georgia, serif !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+        text-shadow: 0.5px 0.5px 0px rgba(140, 98, 57, 0.4) !important;
+      }
+
+      /* DAYTIME LIGHT MODE: Vintage Archive conservatory, sunlit warm aged paper, brass schematic drawings */
+      html:not(.dark).steampunk body,
+      html:not(.dark).steampunk .bg-gray-50, 
+      html:not(.dark).steampunk .dark\:bg-gray-950,
+      html:not(.dark).steampunk .bg-gray-950 {
+        background-color: #f7f3e8 !important;
+        background-image: 
+          radial-gradient(circle at 85% 15%, rgba(212, 175, 55, 0.08) 0%, transparent 45%),
+          linear-gradient(rgba(140, 98, 57, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(140, 98, 57, 0.02) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 28px 28px, 28px 28px !important;
+        position: relative;
+      }
+
+      /* Daylight sunbeams shimmering through warehouse roof vents */
+      html:not(.dark).steampunk::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(125deg, rgba(245, 158, 11, 0.03) 0%, transparent 50%, rgba(140, 98, 57, 0.01) 100%);
+        pointer-events: none;
+        z-index: 1;
+        mix-blend-mode: multiply;
+        animation: steampunk-ray-sweep 12s ease-in-out infinite;
+      }
+
+      /* Moving blueprint grid lines for light mode */
+      html:not(.dark).steampunk::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        background-image: 
+          radial-gradient(circle at 10% 40%, rgba(140, 98, 57, 0.05) 1px, transparent 1.5px),
+          radial-gradient(circle at 80% 80%, rgba(140, 98, 57, 0.04) 1px, transparent 1.5px);
+        background-size: 100px 100px;
+        animation: steampunk-dust-drift 24s linear infinite;
+        opacity: 0.8;
+      }
+
+      /* COZY NIGHTTIME DARK MODE: Glowing copper foundry, carbonized iron walls, burning coal fireplace, soot embers */
+      .dark.steampunk body,
+      .dark.steampunk .bg-gray-50, 
+      .dark.steampunk .dark\:bg-gray-950,
+      .dark.steampunk .bg-gray-950 {
+        background-color: #0b0806 !important;
+        background-image: 
+          radial-gradient(circle at 50% 115%, rgba(245, 71, 11, 0.12) 0%, rgba(14, 11, 8, 0.02) 70%),
+          radial-gradient(circle at 10% 20%, rgba(140, 98, 57, 0.06) 0%, transparent 40%),
+          linear-gradient(rgba(140, 98, 57, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(140, 98, 57, 0.03) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px !important;
+        position: relative;
+      }
+
+      /* Burning coal fire glow fluctuations overlay */
+      .dark.steampunk::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at 50% 100%, rgba(245, 110, 11, 0.04) 0%, transparent 75%);
+        pointer-events: none;
+        z-index: 1;
+        mix-blend-mode: screen;
+        animation: steampunk-fire-flicker 6s ease-in-out infinite;
+      }
+
+      /* Glowing coal furnace soot drifting upwards in cozy dark mode */
+      .dark.steampunk::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        background-image: 
+          radial-gradient(circle at 25% 65%, rgba(245, 158, 11, 0.14) 1.5px, transparent 3.5px),
+          radial-gradient(circle at 75% 25%, rgba(217, 119, 6, 0.12) 2px, transparent 4px),
+          radial-gradient(circle at 45% 85%, rgba(245, 158, 11, 0.09) 1px, transparent 3px),
+          radial-gradient(circle at 90% 70%, rgba(217, 119, 6, 0.16) 2px, transparent 5px);
+        background-size: 200px 200px;
+        animation: steampunk-soot-rise 20s linear infinite;
+        opacity: 0.7;
+      }
+
+      /* Steampunk keyframes for light sunbeams and dark coal soot */
+      @keyframes steampunk-ray-sweep {
+        0%, 100% { opacity: 0.45; transform: scale(1) rotate(0deg); }
+        50% { opacity: 0.75; transform: scale(1.04) rotate(1.5deg); }
+      }
+
+      @keyframes steampunk-fire-flicker {
+        0%, 100% { opacity: 0.65; }
+        30% { opacity: 0.95; }
+        50% { opacity: 0.45; }
+        80% { opacity: 0.85; }
+      }
+
+      @keyframes steampunk-dust-drift {
+        0% { background-position: 0px 0px; }
+        100% { background-position: 100px 200px; }
+      }
+
+      @keyframes steampunk-soot-rise {
+        0% { background-position: 0px 0px; opacity: 0.3; }
+        50% { opacity: 0.8; }
+        100% { background-position: -80px -400px; opacity: 0.2; }
+      }
+
+      /* COZY PARCHMENT SCROLL CARDS: Pressed paper parchment with iron/brass riveted corner styling */
+      html:not(.dark).steampunk .bg-white,
+      html:not(.dark).steampunk .dark\:bg-gray-900,
+      html:not(.dark).steampunk .bg-white\/95,
+      html:not(.dark).steampunk .bg-white\/60,
+      html:not(.dark).steampunk .dark\:bg-white\/5,
+      html:not(.dark).steampunk .card-base,
+      html:not(.dark).steampunk .bg-white\/50,
+      html:not(.dark).steampunk .bg-white\/40,
+      html:not(.dark).steampunk .dark-card,
+      html:not(.dark).steampunk .light-card {
+        background: #fdfbf5 !important;
+        border: 2px solid #8c6239 !important;
+        outline: 1px solid #dcd1be !important;
+        outline-offset: -5px !important;
+        box-shadow: 
+          4px 4px 0px #cfb895,
+          0 10px 25px rgba(140, 98, 57, 0.06),
+          inset 0 0 12px rgba(140, 98, 57, 0.08) !important;
+        border-radius: 4px !important;
+        color: #271a10 !important;
+        transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+      }
+
+      /* Hover uplift for daytime parchment card */
+      html:not(.dark).steampunk .bg-white:hover,
+      html:not(.dark).steampunk .card-base:hover,
+      html:not(.dark).steampunk .dark-card:hover {
+        transform: translate(-1px, -1px) !important;
+        box-shadow: 
+          5px 5px 0px #c2a77b,
+          0 14px 30px rgba(140, 98, 57, 0.1),
+          inset 0 0 16px rgba(140, 98, 57, 0.12) !important;
+      }
+
+      /* HEAVY CAST-IRON foundry CARDS: Carbon steel sheet, radiant copper borders, rivets decoration */
+      .dark.steampunk .bg-white,
+      .dark.steampunk .dark\:bg-gray-900,
+      .dark.steampunk .bg-white\/95,
+      .dark.steampunk .bg-white\/60,
+      .dark.steampunk .dark\:bg-white\/5,
+      .dark.steampunk .card-base,
+      .dark.steampunk .bg-white\/50,
+      .dark.steampunk .bg-white\/40,
+      .dark.steampunk .dark-card,
+      .dark.steampunk .light-card {
+        background: #18120e !important;
+        border: 2px solid #a26938 !important;
+        outline: 1px solid #5a3c22 !important;
+        outline-offset: -5px !important;
+        box-shadow: 
+          5px 5px 0px #090604,
+          0 12px 30px rgba(0,0,0,0.6),
+          inset 0 0 15px rgba(162, 105, 56, 0.12) !important;
+        border-radius: 4px !important;
+        color: #edd2b3 !important;
+        transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+      }
+
+      /* Hover uplift for nighttime boiler card */
+      .dark.steampunk .bg-white:hover,
+      .dark.steampunk .card-base:hover,
+      .dark.steampunk .dark-card:hover {
+        transform: translate(-1px, -1px) !important;
+        border-color: #c98547 !important;
+        box-shadow: 
+          6px 6px 0px #090604,
+          0 16px 35px rgba(0,0,0,0.7),
+          inset 0 0 20px rgba(162, 105, 56, 0.2) !important;
+      }
+
+      /* RIVET DETAIL INJECTION EFFECT */
+      .steampunk .card-base::before,
+      .steampunk .bg-white::before {
+        content: "•";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        font-size: 8px;
+        color: #8c6239;
+        text-shadow: 0.5px 0.5px 0px rgba(255,255,255,0.4);
+        opacity: 0.7;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .dark.steampunk .card-base::before,
+      .dark.steampunk .bg-white::before {
+        color: #a26938;
+        text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.8);
+      }
+
+      /* STEAMPUNK LIT INPUT FIELD (Inkwell parchment ledger) */
+      html:not(.dark).steampunk select,
+      html:not(.dark).steampunk input,
+      html:not(.dark).steampunk textarea,
+      html:not(.dark).steampunk .input-base {
+        background-color: #fafcf5 !important;
+        border: 2px solid #8c6239 !important;
+        outline: 1px solid rgba(140, 98, 57, 0.15) !important;
+        color: #271a10 !important;
+        border-radius: 3px !important;
+        box-shadow: inset 0 2px 6px rgba(140,98,57,0.06), 1px 1px 0px #e6dbca !important;
+        font-weight: 500 !important;
+      }
+
+      html:not(.dark).steampunk input:focus,
+      html:not(.dark).steampunk select:focus,
+      html:not(.dark).steampunk textarea:focus {
+        border-color: #b45309 !important;
+        background-color: #ffffff !important;
+        box-shadow: inset 0 2px 8px rgba(180,83,9,0.1), 0 0 0 3px rgba(180,83,9,0.08) !important;
+        transform: translateY(-0.5px);
+      }
+
+      /* STEAMPUNK DARK INPUT FIELD (Smoky copper burner) */
+      .dark.steampunk select,
+      .dark.steampunk input,
+      .dark.steampunk textarea,
+      .dark.steampunk .input-base {
+        background-color: #120d09 !important;
+        border: 2px solid #a26938 !important;
+        outline: 1px solid rgba(162, 105, 56, 0.15) !important;
+        color: #edd2b3 !important;
+        border-radius: 3px !important;
+        box-shadow: inset 0 2px 7px rgba(0,0,0,0.6), 1px 1px 0px #090604 !important;
+      }
+
+      .dark.steampunk input:focus,
+      .dark.steampunk select:focus,
+      .dark.steampunk textarea:focus {
+        border-color: #c98547 !important;
+        background-color: #0c0806 !important;
+        box-shadow: inset 0 2px 10px rgba(201, 133, 71, 0.15), 0 0 0 3px rgba(201, 133, 71, 0.1) !important;
+        transform: translateY(-0.5px);
+      }
+
+      html:not(.dark).steampunk select option {
+        background-color: #f7f3e8 !important;
+        color: #271a10 !important;
+      }
+
+      .dark.steampunk select option {
+        background-color: #1a130f !important;
+        color: #edd2b3 !important;
+      }
+
+      /* STEAMPUNK DOUBLE-LINE Victorian header dividers / sidebars */
+      .steampunk .w-64,
+      .steampunk md\:translate-x-0 {
+        border-right: 4px double #8c6239 !important;
+        box-shadow: 6px 0 20px rgba(0, 0, 0, 0.25) !important;
+      }
+      .dark.steampunk .w-64 {
+        background: #18110c !important;
+      }
+      html:not(.dark).steampunk .w-64 {
+        background: #faf7ef !important;
+      }
+
+      .steampunk main div.md\:flex,
+      .steampunk main header,
+      .steampunk .sticky {
+        border-bottom: 4px double #8c6239 !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+      }
+      .dark.steampunk main div.md\:flex,
+      .dark.steampunk main header,
+      .dark.steampunk .sticky {
+        background: rgba(24, 18, 14, 0.96) !important;
+      }
+      html:not(.dark).steampunk main div.md\:flex,
+      html:not(.dark).steampunk main header,
+      html:not(.dark).steampunk .sticky {
+        background: rgba(250, 247, 239, 0.95) !important;
+      }
+
+      /* STEAM-MACHINERY BUTTONS (Etched lever style, physical solid press) */
+      .steampunk button[style*="background-color"],
+      .steampunk .btn-primary,
+      .steampunk button.bg-indigo-600,
+      .steampunk button.bg-indigo-500 {
+        background: linear-gradient(180deg, rgba(var(--primary-rgb), 1) 0%, rgba(var(--primary-rgb), 0.8) 100%) !important;
+        border: 2px solid #5a3c22 !important;
+        border-bottom-width: 4px !important;
+        box-shadow: 
+          0 4px 10px rgba(var(--primary-rgb), 0.18),
+          0 2px 0px #322113 !important;
+        color: #ffffff !important;
+        border-radius: 4px !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.1em !important;
+        transition: all 0.12s cubic-bezier(0.17, 0.67, 0.83, 0.67) !important;
+      }
+
+      .steampunk button[style*="background-color"]:hover,
+      .steampunk .btn-primary:hover,
+      .steampunk button.bg-indigo-600:hover,
+      .steampunk button.bg-indigo-500:hover {
+        transform: translateY(1px);
+        box-shadow: 
+          0 3px 6px rgba(var(--primary-rgb), 0.22),
+          0 1px 0px #322113 !important;
+        filter: brightness(1.04);
+      }
+
+      /* Physical lever DEPRESS click action! */
+      .steampunk button[style*="background-color"]:active,
+      .steampunk .btn-primary:active,
+      .steampunk button.bg-indigo-600:active,
+      .steampunk button.bg-indigo-500:active {
+        transform: translateY(3px) !important;
+        box-shadow: 
+          0 1px 2px rgba(var(--primary-rgb), 0.1),
+          0 0px 0px #322113 !important;
+      }
+
+      /* Secondary outline buttons (Typewriter dash border) */
+      .steampunk button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]) {
+        border: 2px dashed #8c6239 !important;
+        background: rgba(140, 98, 57, 0.04) !important;
+        color: #8c6239 !important;
+        font-weight: bold !important;
+        border-radius: 4px !important;
+        transition: all 0.2s ease !important;
+      }
+      .dark.steampunk button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]) {
+        color: #edd2b3 !important;
+        border-color: #a26938 !important;
+        background: rgba(162, 105, 56, 0.04) !important;
+      }
+
+      .steampunk button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]):hover {
+        background: rgba(140, 98, 57, 0.09) !important;
+        border-style: solid !important;
+        transform: translateY(-0.5px);
+      }
+      .dark.steampunk button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]):hover {
+        background: rgba(162, 105, 56, 0.09) !important;
+      }
+
+      /* Navigation layout buttons (Patent index filing cards) */
+      .steampunk nav button {
+        border-radius: 0px !important;
+        border-left: 3px solid transparent !important;
+        text-transform: uppercase !important;
+        margin-bottom: 5px !important;
+        letter-spacing: 0.08em !important;
+        transition: all 0.2s ease !important;
+      }
+
+      .steampunk nav button[style*="background-color"] {
+        border-left: 5px solid rgba(var(--primary-rgb), 1) !important;
+        background: rgba(140, 98, 57, 0.16) !important;
+        color: rgba(var(--primary-rgb), 1) !important;
+        font-weight: 900 !important;
+      }
+      .steampunk nav button:not([style*="background-color"]):hover {
+        background: rgba(140, 98, 57, 0.06) !important;
+        border-left-color: rgba(140, 98, 57, 0.3) !important;
+        transform: translateX(1px);
+      }
+
+
+      /* ====================================================
+         SECTION-SPECIFIC STYLES ("Different with each section")
+         ==================================================== */
+
+      /* A. DASHBOARD VIEW: The Locomotive Operations Room */
+      .steampunk.view-dashboard .card-base,
+      .steampunk.view-dashboard .bg-white {
+        background-image: 
+          radial-gradient(circle at 90% 10%, rgba(140,98,57,0.03) 0%, transparent 50%),
+          linear-gradient(to right, rgba(140,98,57,0.02) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 15px 15px !important;
+      }
+      /* Style Recharts progress trackers as linear scale glass tubes */
+      .steampunk.view-dashboard .h-3,
+      .steampunk.view-dashboard .h-2,
+      .steampunk.view-dashboard [class*="bg-gray-100"] {
+        background-color: #e3d9c7 !important;
+        border: 1px solid #8c6239 !important;
+        border-radius: 9px !important;
+        overflow: hidden;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.15) !important;
+      }
+      .dark.steampunk.view-dashboard .h-3,
+      .dark.steampunk.view-dashboard .h-2,
+      .dark.steampunk.view-dashboard [class*="bg-gray-100"] {
+        background-color: #0d0805 !important;
+        border: 1.5px solid #a26938 !important;
+      }
+
+      /* B. PERSONALITY TEST: Phrenology Lab & Mechanical Ledger Dial */
+      .steampunk.view-personality .card-base {
+        background-image: 
+          radial-gradient(circle at 50% 50%, rgba(140,98,57,0.015) 0%, transparent 60%),
+          repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(140, 98, 57, 0.01) 10px, rgba(140, 98, 57, 0.01) 20px) !important;
+      }
+      /* Custom compass design for personality traits */
+      .steampunk.view-personality button[class*="border-purple-"],
+      .steampunk.view-personality .border-indigo-500 {
+        border-color: #b45309 !important;
+        background-color: rgba(140, 98, 57, 0.05) !important;
+      }
+
+      /* C. CAREER ROADMAP: Patent Blueprints Exhibition Scroll */
+      .steampunk.view-roadmap .card-base,
+      .steampunk.view-roadmap [class*="bg-gradient-"] {
+        background-color: #102e3c !important; /* Rich deep blueprint cyan */
+        background-image: 
+          linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px) !important;
+        background-size: 20px 20px, 20px 20px !important;
+        border: 3px solid #8c6239 !important;
+        color: #faf7f2 !important;
+        outline: none !important;
+        box-shadow: 
+          5px 5px 0px #312113,
+          inset 0 0 15px rgba(255,255,255,0.05) !important;
+      }
+      .steampunk.view-roadmap h2,
+      .steampunk.view-roadmap h3,
+      .steampunk.view-roadmap h4 {
+        color: #fffb90 !important; /* Brass highlight yellow */
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.6) !important;
+      }
+      .steampunk.view-roadmap p,
+      .steampunk.view-roadmap span {
+        color: #dbeaf4 !important;
+      }
+
+      /* D. SKILL GAP: Differential Sorting Engine Plates */
+      .steampunk.view-skill_gap .card-base {
+        background-image: 
+          linear-gradient(90deg, #18120e 0%, transparent 40%),
+          linear-gradient(rgba(140,98,57,0.035) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 10px 10px !important;
+      }
+      /* Level meters styled as pistons */
+      .steampunk.view-skill_gap [style*="width:"] {
+        background: linear-gradient(90deg, #c98547 0%, #b45309 100%) !important;
+        border-right: 3px solid #ffd490 !important;
+      }
+
+      /* E. RESUME BUILDER: Inventor's Patent Office Parchment */
+      .steampunk.view-resume_builder .card-base {
+        background-color: #fcf9f2 !important;
+        background-image: 
+          radial-gradient(circle at 10% 10%, rgba(0,0,0,0.01) 0%, transparent 50%),
+          linear-gradient(to bottom, transparent 95%, rgba(140, 98, 57, 0.07) 95%) !important;
+        background-size: 100% 100%, 100% 24px !important; /* Ledger line spacing */
+        border: 2px solid #5a3c22 !important;
+        box-shadow: 3px 3px 0px #cfb895, 0 10px 30px rgba(0,0,0,0.05) !important;
+        outline: none !important;
+        border-radius: 2px !important;
+      }
+      .dark.steampunk.view-resume_builder .card-base {
+        background-color: #ece4d2 !important; /* Force readable paper look, even in dark mode */
+        color: #1f140d !important;
+      }
+      .steampunk.view-resume_builder p,
+      .steampunk.view-resume_builder li,
+      .steampunk.view-resume_builder label {
+        color: #1f140d !important;
+        font-family: 'Courier New', Courier, monospace !important;
+      }
+      .steampunk.view-resume_builder h1,
+      .steampunk.view-resume_builder h2,
+      .steampunk.view-resume_builder h3 {
+        color: #3b2816 !important;
+        border-bottom: 2px solid #5a3c22 !important;
+      }
+
+      /* F. SETTINGS: Mainframe Steam Gauge Control Plate */
+      .steampunk.view-settings .card-base {
+        background-image: 
+          radial-gradient(circle at 15% 15%, rgba(180, 83, 9, 0.04) 0%, transparent 35%),
+          radial-gradient(circle at 85% 85%, rgba(140, 98, 57, 0.06) 0%, transparent 40%) !important;
+      }
+      .steampunk.view-settings h2, 
+      .steampunk.view-settings h3 {
+        border-bottom: 3px double #8c6239 !important;
+        padding-bottom: 6px !important;
+      }
+
+
+
+
+      /* ==========================================
+         SOLARPUNK VIBE (Botanical Eco-Futurism)
+         ========================================== */
+      .solarpunk,
+      .solarpunk body,
+      .solarpunk p,
+      .solarpunk span,
+      .solarpunk div,
+      .solarpunk input,
+      .solarpunk select,
+      .solarpunk textarea,
+      .solarpunk button,
+      .solarpunk label {
+         font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+      }
+
+      .solarpunk h1, 
+      .solarpunk h2, 
+      .solarpunk h3, 
+      .solarpunk h4, 
+      .solarpunk .font-brand {
+        font-family: 'Fraunces', 'Playfair Display', serif !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.01em !important;
+      }
+
+      /* DAYTIME LIGHT MODE FEEL: Sun-drenched, radiant sky, rich linen cremes, comforting leaf greens */
+      html:not(.dark).solarpunk body,
+      html:not(.dark).solarpunk .bg-gray-50, 
+      html:not(.dark).solarpunk .dark\:bg-gray-950,
+      html:not(.dark).solarpunk .bg-gray-950 {
+        background-color: #fafcf6 !important;
+        background-image: 
+          radial-gradient(circle at 80% 10%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 15% 70%, rgba(52, 211, 153, 0.08) 0%, transparent 55%),
+          radial-gradient(circle at 50% 120%, rgba(209, 250, 229, 0.12) 0%, transparent 60%) !important;
+        background-size: 100% 100% !important;
+        position: relative;
+      }
+
+      /* DAYTIME Sunbeam/Solar glow effect overlay */
+      html:not(.dark).solarpunk::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.02) 0%, transparent 50%, rgba(16, 185, 129, 0.01) 100%);
+        pointer-events: none;
+        z-index: 1;
+        mix-blend-mode: color-dodge;
+        animation: solarpunk-sunray-pulse 10s ease-in-out infinite;
+      }
+
+      /* LIVING Spore particles floating in daylight */
+      html:not(.dark).solarpunk::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        background-image: 
+          radial-gradient(circle at 20% 30%, rgba(251, 191, 36, 0.18) 1.5px, transparent 3px),
+          radial-gradient(circle at 75% 45%, rgba(52, 211, 153, 0.15) 1.5px, transparent 3px),
+          radial-gradient(circle at 45% 80%, rgba(251, 191, 36, 0.14) 2px, transparent 4px),
+          radial-gradient(circle at 85% 75%, rgba(52, 211, 153, 0.18) 2px, transparent 4px);
+        background-size: 140px 140px;
+        animation: solarpunk-warm-wind 24s linear infinite;
+        opacity: 0.65;
+      }
+
+      /* COZY NIGHT TIME FEEL: Deep twilight evergreen forest canopy, soothing biolumes, tranquil starry sky */
+      .dark.solarpunk body,
+      .dark.solarpunk .bg-gray-50, 
+      .dark.solarpunk .dark\:bg-gray-950,
+      .dark.solarpunk .bg-gray-950 {
+        background-color: #060e0a !important;
+        background-image: 
+          radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+          radial-gradient(circle at 15% 85%, rgba(217, 119, 6, 0.04) 0%, transparent 40%),
+          radial-gradient(circle at 50% 50%, rgba(6, 78, 59, 0.1) 0%, transparent 60%) !important;
+        background-size: 100% 100% !important;
+      }
+
+      /* NIGHTTIME Twilight aura overlay */
+      .dark.solarpunk::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(to bottom, rgba(6, 14, 10, 0) 60%, rgba(16, 185, 129, 0.02) 100%);
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      /* LIVING Bioluminescent fireflies & spores floating in cozy night */
+      .dark.solarpunk::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        background-image: 
+          radial-gradient(circle at 35% 25%, rgba(52, 211, 153, 0.25) 1.5px, transparent 3.5px),
+          radial-gradient(circle at 80% 65%, rgba(251, 191, 36, 0.22) 1.5px, transparent 3.5px),
+          radial-gradient(circle at 15% 55%, rgba(52, 211, 153, 0.2) 2px, transparent 4px),
+          radial-gradient(circle at 60% 85%, rgba(251, 191, 36, 0.24) 1.5px, transparent 3px);
+        background-size: 180px 180px;
+        animation: solarpunk-mystical-drift 28s linear infinite;
+        opacity: 0.7;
+      }
+
+      /* Animated solar rays and cozy night elements */
+      @keyframes solarpunk-sunray-pulse {
+        0%, 100% {
+          opacity: 0.25;
+          transform: scale(1) rotate(0deg);
+        }
+        50% {
+          opacity: 0.55;
+          transform: scale(1.05) rotate(1.5deg);
+        }
+      }
+
+      @keyframes solarpunk-warm-wind {
+        0% {
+          background-position: 0px 0px;
+        }
+        100% {
+          background-position: 140px 280px;
+        }
+      }
+
+      @keyframes solarpunk-mystical-drift {
+        0% {
+          background-position: 0px 0px;
+        }
+        50% {
+          opacity: 0.35;
+        }
+        100% {
+          background-position: -180px -360px;
+        }
+      }
+
+      /* DAYTIME Comforting Light Cards */
+      html:not(.dark).solarpunk .bg-white,
+      html:not(.dark).solarpunk .dark\:bg-gray-900,
+      html:not(.dark).solarpunk .bg-white\/95,
+      html:not(.dark).solarpunk .bg-white\/60,
+      html:not(.dark).solarpunk .dark\:bg-white\/5,
+      html:not(.dark).solarpunk .card-base,
+      html:not(.dark).solarpunk .bg-white\/50,
+      html:not(.dark).solarpunk .bg-white\/40,
+      html:not(.dark).solarpunk .dark-card,
+      html:not(.dark).solarpunk .light-card {
+        background: rgba(255, 255, 255, 0.94) !important;
+        border: 1.5px solid rgba(16, 185, 129, 0.16) !important;
+        box-shadow: 
+          0 10px 30px rgba(16, 185, 129, 0.04), 
+          0 1px 3px rgba(16, 185, 129, 0.02),
+          inset 0 0 16px rgba(255, 255, 255, 0.8) !important;
+        border-radius: 24px !important;
+        color: #102e1c !important;
+        position: relative;
+        overflow: visible !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+      }
+
+      /* Daytime Card Hover Lift */
+      html:not(.dark).solarpunk .bg-white:hover,
+      html:not(.dark).solarpunk .card-base:hover,
+      html:not(.dark).solarpunk .dark-card:hover {
+        transform: translateY(-2px) scale(1.005) !important;
+        border-color: rgba(16, 185, 129, 0.35) !important;
+        box-shadow: 
+          0 14px 40px rgba(16, 185, 129, 0.07), 
+          0 0 12px rgba(251, 191, 36, 0.04),
+          inset 0 0 16px rgba(255, 255, 255, 0.9) !important;
+      }
+
+      /* NIGHTTIME Cozy Night Cards */
+      .dark.solarpunk .bg-white,
+      .dark.solarpunk .dark\:bg-gray-900,
+      .dark.solarpunk .bg-white\/95,
+      .dark.solarpunk .bg-white\/60,
+      .dark.solarpunk .dark\:bg-white\/5,
+      .dark.solarpunk .card-base,
+      .dark.solarpunk .bg-white\/50,
+      .dark.solarpunk .bg-white\/40,
+      .dark.solarpunk .dark-card,
+      .dark.solarpunk .light-card {
+        background: rgba(12, 23, 17, 0.88) !important;
+        border: 1.5px solid rgba(16, 185, 129, 0.28) !important;
+        box-shadow: 
+          0 12px 35px rgba(0, 0, 0, 0.4), 
+          0 0 15px rgba(16, 185, 129, 0.03),
+          inset 0 0 12px rgba(16, 185, 129, 0.04) !important;
+        border-radius: 24px !important;
+        color: #e5f5eb !important;
+        position: relative;
+        overflow: visible !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+      }
+
+      /* Nighttime Card Hover Lift */
+      .dark.solarpunk .bg-white:hover,
+      .dark.solarpunk .card-base:hover,
+      .dark.solarpunk .dark-card:hover {
+        transform: translateY(-2px) scale(1.005) !important;
+        border-color: rgba(16, 185, 129, 0.45) !important;
+        box-shadow: 
+          0 16px 45px rgba(0, 0, 0, 0.5), 
+          0 0 20px rgba(16, 185, 129, 0.08),
+          inset 0 0 12px rgba(16, 185, 129, 0.06) !important;
+      }
+
+      /* DAYTIME Inputs */
+      html:not(.dark).solarpunk select,
+      html:not(.dark).solarpunk input,
+      html:not(.dark).solarpunk textarea,
+      html:not(.dark).solarpunk .input-base {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+        border: 1.5px solid rgba(16, 185, 129, 0.25) !important;
+        color: #102e1c !important;
+        border-radius: 14px !important;
+        font-weight: 500 !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.02) !important;
+        transition: all 0.25s ease !important;
+      }
+
+      html:not(.dark).solarpunk input:focus,
+      html:not(.dark).solarpunk select:focus,
+      html:not(.dark).solarpunk textarea:focus {
+        border-color: rgba(16, 185, 129, 0.8) !important;
+        background-color: #ffffff !important;
+        box-shadow: 
+          0 4px 15px rgba(16, 185, 129, 0.08), 
+          0 0 0 3px rgba(16, 185, 129, 0.08) !important;
+        transform: translateY(-0.5px);
+        outline: none !important;
+      }
+
+      /* NIGHTTIME Inputs */
+      .dark.solarpunk select,
+      .dark.solarpunk input,
+      .dark.solarpunk textarea,
+      .dark.solarpunk .input-base {
+        background-color: rgba(8, 16, 12, 0.9) !important;
+        border: 1.5px solid rgba(16, 185, 129, 0.38) !important;
+        color: #e5f5eb !important;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        transition: all 0.25s ease !important;
+      }
+
+      .dark.solarpunk input:focus,
+      .dark.solarpunk select:focus,
+      .dark.solarpunk textarea:focus {
+        border-color: rgba(16, 185, 129, 0.85) !important;
+        background-color: rgba(4, 9, 7, 0.95) !important;
+        box-shadow: 
+          0 4px 18px rgba(16, 185, 129, 0.15), 
+          0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+        transform: translateY(-0.5px);
+        outline: none !important;
+      }
+
+      html:not(.dark).solarpunk select option {
+        background-color: #fafcf6 !important;
+        color: #102e1c !important;
+      }
+
+      .dark.solarpunk select option {
+        background-color: #0b140f !important;
+        color: #e5f5eb !important;
+      }
+
+      /* Solarpunk sidebars and headers */
+      .solarpunk .w-64,
+      .solarpunk md\:translate-x-0 {
+        border-right: 2px solid rgba(16, 185, 129, 0.2) !important;
+        border-top-right-radius: 28px !important;
+        border-bottom-right-radius: 28px !important;
+        box-shadow: 8px 0 30px rgba(16, 185, 129, 0.02) !important;
+      }
+      .dark.solarpunk .w-64 {
+        background: rgba(8, 17, 12, 0.95) !important;
+        box-shadow: 8px 0 30px rgba(0, 0, 0, 0.3) !important;
+      }
+      html:not(.dark).solarpunk .w-64 {
+        background: rgba(251, 253, 248, 0.96) !important;
+      }
+
+      .solarpunk main div.md\:flex,
+      .solarpunk main header,
+      .solarpunk .sticky {
+        border-bottom: 2.5px solid rgba(16, 185, 129, 0.16) !important;
+        border-radius: 0 0 20px 20px !important;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.01) !important;
+      }
+      .dark.solarpunk main div.md\:flex,
+      .dark.solarpunk main header,
+      .dark.solarpunk .sticky {
+        background: rgba(8, 17, 12, 0.93) !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
+      }
+      html:not(.dark).solarpunk main div.md\:flex,
+      html:not(.dark).solarpunk main header,
+      html:not(.dark).solarpunk .sticky {
+        background: rgba(251, 253, 248, 0.94) !important;
+      }
+
+      /* BUTTONS - Solarpunk matching leaf emerald/amber glow & dynamic colors */
+      .solarpunk button[style*="background-color"],
+      .solarpunk .btn-primary,
+      .solarpunk button.bg-indigo-600,
+      .solarpunk button.bg-indigo-500 {
+        background: linear-gradient(135deg, rgba(var(--primary-rgb), 1) 0%, rgba(var(--primary-rgb), 0.78) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 
+          0 4px 15px rgba(var(--primary-rgb), 0.18),
+          0 2px 4px rgba(var(--primary-rgb), 0.1) !important;
+        color: #ffffff !important;
+        border-radius: 16px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+
+      .solarpunk button[style*="background-color"]:hover,
+      .solarpunk .btn-primary:hover,
+      .solarpunk button.bg-indigo-600:hover,
+      .solarpunk button.bg-indigo-500:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 
+          0 8px 22px rgba(var(--primary-rgb), 0.28),
+          0 3px 6px rgba(var(--primary-rgb), 0.12),
+          inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+        filter: brightness(1.05);
+      }
+
+      .solarpunk button[style*="background-color"]:active,
+      .solarpunk .btn-primary:active,
+      .solarpunk button.bg-indigo-600:active,
+      .solarpunk button.bg-indigo-500:active {
+        transform: translateY(0.5px) scale(0.98);
+        box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.15) !important;
+      }
+
+      /* Secondary outline buttons in solarpunk view */
+      .solarpunk button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]) {
+        border: 2px solid rgba(16, 185, 129, 0.35) !important;
+        background: rgba(16, 185, 129, 0.04) !important;
+        color: #0d5c3a !important;
+        font-weight: 500 !important;
+        border-radius: 16px !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+      .dark.solarpunk button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]) {
+        color: #52e1a3 !important;
+        border-color: rgba(52, 211, 153, 0.35) !important;
+        background: rgba(52, 211, 153, 0.04) !important;
+      }
+
+      .solarpunk button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]):hover {
+        background: rgba(16, 185, 129, 0.1) !important;
+        border-color: rgba(16, 185, 129, 0.6) !important;
+        transform: translateY(-1.5px) scale(1.01);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.06) !important;
+      }
+      .dark.solarpunk button:not([style*="background-color"]):not([class*="p-1"]):not([class*="text-gray"]):not([class*="text-red"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="bg-transparent"]):not([class*="rounded-full"]):hover {
+        background: rgba(52, 211, 153, 0.08) !important;
+        border-color: rgba(52, 211, 153, 0.6) !important;
+        box-shadow: 0 4px 15px rgba(52, 211, 153, 0.08) !important;
+      }
+
+      /* Solarpunk navigation links */
+      .solarpunk nav button {
+        border-radius: 14px !important;
+        margin-bottom: 8px !important;
+        transition: all 0.2s ease !important;
+      }
+      .solarpunk nav button[style*="background-color"] {
+        background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.14) 0%, transparent 100%) !important;
+        border-left: 4px solid rgba(var(--primary-rgb), 1) !important;
+        color: rgba(var(--primary-rgb), 1) !important;
+        font-weight: 600 !important;
+        transform: translateX(2px);
+      }
+      .solarpunk nav button:not([style*="background-color"]):hover {
+        background: rgba(16, 185, 129, 0.06) !important;
+        transform: translateX(1px);
+      }
+
+      /* Interactive Muscle Anatomy Highlights for Solarpunk */
+      .solarpunk svg [style*="fill"] {
+        transition: fill 0.4s ease, filter 0.4s ease !important;
+      }
+      .solarpunk svg g:hover [style*="fill"] {
+        filter: drop-shadow(0 0 10px rgba(20, 184, 166, 0.5)) brightness(1.15) !important;
+      }
+
+      /* ============================================================
+         SOLARPUNK SECTION-SPECIFIC ATMOSPHERES ("Different with each section")
+         ============================================================ */
+
+      /* A. THE GREENHOUSE CANOPY (Dashboard & Main Navigation hub) */
+      .solarpunk.view-dashboard {
+        --canopy-glow: rgba(20, 184, 166, 0.05);
+      }
+      html:not(.dark).solarpunk.view-dashboard {
+        background-image: 
+          radial-gradient(circle at 5% 5%, rgba(20, 184, 166, 0.08) 0%, transparent 40%),
+          radial-gradient(circle at 95% 95%, rgba(245, 158, 11, 0.06) 0%, transparent 45%) !important;
+      }
+      .dark.solarpunk.view-dashboard {
+        background-image: 
+          radial-gradient(circle at 5% 5%, rgba(13, 148, 136, 0.12) 0%, transparent 50%),
+          radial-gradient(circle at 95% 95%, rgba(16, 185, 129, 0.06) 0%, transparent 50%) !important;
+      }
+      /* Solar panel grid frame accents for Dashboard */
+      .solarpunk.view-dashboard .card-base,
+      .solarpunk.view-dashboard .bg-white {
+        border-radius: 32px !important;
+        background-image: 
+          linear-gradient(135deg, rgba(20, 184, 166, 0.03) 0%, transparent 60%),
+          linear-gradient(to right, rgba(20, 184, 166, 0.05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(20, 184, 166, 0.05) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 48px 100%, 100% 48px !important; /* Elegant architectural greenhouse glass grid panes */
+        backdrop-filter: blur(12px) !important;
+      }
+
+      /* B. THE BOTANICAL GARDEN PAVILION (Personality Test / Questionnaire) */
+      .solarpunk.view-personality_test .card-base,
+      .solarpunk.view-personalitytest .card-base,
+      .solarpunk.view-personality-test .card-base {
+        border-radius: 40px !important;
+        background-image: 
+          radial-gradient(circle at top right, rgba(245, 158, 11, 0.05) 0%, transparent 40%),
+          radial-gradient(circle at bottom left, rgba(20, 184, 166, 0.05) 0%, transparent 40%) !important;
+        border-color: rgba(20, 184, 166, 0.22) !important;
+        box-shadow: 
+          0 20px 40px rgba(20, 184, 166, 0.05),
+          inset 0 0 24px rgba(255, 255, 255, 0.4) !important;
+      }
+      /* Sprout Ivy Progress Indicators */
+      .solarpunk.view-personality_test .bg-indigo-600,
+      .solarpunk.view-personalitytest .bg-indigo-600,
+      .solarpunk.view-personality_test [class*="bg-indigo-"],
+      .solarpunk.view-personalitytest [class*="bg-indigo-"] {
+        background: linear-gradient(90deg, #14b8a6 0%, #10b981 100%) !important;
+      }
+      /* Choice items modeled after wild organic garden petals */
+      .solarpunk.view-personality_test button[class*="border-gray-"],
+      .solarpunk.view-personalitytest button[class*="border-gray-"] {
+        border-radius: 18px !important;
+        border: 1.5px solid rgba(20, 184, 166, 0.2) !important;
+        background: rgba(255, 255, 255, 0.4) !important;
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+      }
+      .solarpunk.view-personality_test button[class*="border-gray-"]:hover,
+      .solarpunk.view-personalitytest button[class*="border-gray-"]:hover {
+        border-color: #14b8a6 !important;
+        background: rgba(20, 184, 166, 0.05) !important;
+        transform: scale(1.015) translateY(-1px) !important;
+      }
+
+      /* C. THE RESTORATIVE FOREST TRAIL (Career Roadmaps & Paths) */
+      .solarpunk.view-roadmap,
+      .solarpunk.view-career_roadmap,
+      .solarpunk.view-careerroadmaps {
+        --trail-line: #14b8a6;
+      }
+      /* Path connections feel like leaf-vine connections */
+      .solarpunk.view-roadmap [style*="border-color"],
+      .solarpunk.view-career_roadmap [style*="border-color"] {
+        border-color: rgba(20, 184, 166, 0.4) !important;
+      }
+      /* Timeline stone steps style */
+      .solarpunk.view-roadmap div[class*="rounded-full"][class*="w-"],
+      .solarpunk.view-career_roadmap div[class*="rounded-full"][class*="w-"] {
+        background-color: #14b8a6 !important;
+        box-shadow: 0 0 14px rgba(20, 184, 166, 0.6) !important;
+        border: 3px solid rgba(255, 255, 255, 0.9) !important;
+      }
+      .dark.solarpunk.view-roadmap div[class*="rounded-full"][class*="w-"],
+      .dark.solarpunk.view-career_roadmap div[class*="rounded-full"][class*="w-"] {
+        border-color: #0c1a17 !important;
+      }
+
+      /* D. THE BIOLUMINESCENT CHLOROPHYLL NEST (Skill Gap Analysis tool) */
+      .solarpunk.view-skill_gap,
+      .solarpunk.view-skillgap {
+        background-image: 
+          radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.06) 0%, transparent 45%) !important;
+      }
+      /* Gauge Rings glow like circular botanical energy filters */
+      .solarpunk.view-skill_gap svg circle,
+      .solarpunk.view-skillgap svg circle {
+        stroke-linecap: round !important;
+        filter: drop-shadow(0 0 6px rgba(20, 184, 166, 0.2)) !important;
+      }
+      .dark.solarpunk.view-skill_gap svg circle,
+      .dark.solarpunk.view-skillgap svg circle {
+        filter: drop-shadow(0 0 8px rgba(20, 184, 166, 0.4)) !important;
+      }
+
+      /* E. THE RECYCLED COTTON PAPYRUS (Resume Maker / Paper output) */
+      .solarpunk.view-resumemaker .card-base,
+      .solarpunk.view-resume_builder .card-base,
+      .solarpunk.view-resume_builder .bg-white {
+        background-color: #f7f9f2 !important; /* Soft, sundried cotton seed fiber look */
+        color: #16241c !important;
+        border: 2px solid rgba(20, 184, 166, 0.15) !important;
+        background-image: 
+          radial-gradient(rgba(20, 184, 166, 0.015) 1px, transparent 0),
+          radial-gradient(circle at top right, rgba(217, 119, 6, 0.02) 0%, transparent 35%) !important;
+        background-size: 24px 24px, 100% 100% !important;
+        box-shadow: 
+          4px 4px 0px rgba(20, 184, 166, 0.1),
+          0 10px 30px rgba(0,0,0,0.03) !important;
+        font-family: 'Georgia', serif !important;
+      }
+      .solarpunk.view-resumemaker h1,
+      .solarpunk.view-resumemaker h2,
+      .solarpunk.view-resumemaker h3,
+      .solarpunk.view-resume_builder h1,
+      .solarpunk.view-resume_builder h2,
+      .solarpunk.view-resume_builder h3 {
+        color: #0f3d2a !important;
+        border-bottom-color: rgba(20, 184, 166, 0.3) !important;
+      }
+      .solarpunk.view-resumemaker p,
+      .solarpunk.view-resumemaker li,
+      .solarpunk.view-resume_builder p,
+      .solarpunk.view-resume_builder li {
+        color: #233e2f !important;
+      }
+
+      /* F. THE ECO-GRID ENERGY NODE (Interests & Career recommendations) */
+      .solarpunk.view-interests_analyzer .card-base,
+      .solarpunk.view-interests .card-base {
+        background-image: 
+          radial-gradient(circle at 10% 10%, rgba(20, 184, 166, 0.05) 0%, transparent 30%),
+          radial-gradient(circle at 90% 90%, rgba(245, 158, 11, 0.04) 0%, transparent 30%) !important;
+      }
+      /* Interactive tags floating on the grid */
+      .solarpunk.view-interests_analyzer [class*="rounded-full"][class*="cursor-pointer"],
+      .solarpunk.view-interests [class*="rounded-full"][class*="cursor-pointer"] {
+        border: 1px solid rgba(20, 184, 166, 0.25) !important;
+        background: rgba(255, 255, 255, 0.45) !important;
+        transition: all 0.2s ease-in-out !important;
+      }
+      .solarpunk.view-interests_analyzer [class*="rounded-full"][class*="cursor-pointer"]:hover,
+      .solarpunk.view-interests [class*="rounded-full"][class*="cursor-pointer"]:hover {
+        background: rgba(20, 184, 166, 0.1) !important;
+        border-color: rgba(20, 184, 166, 0.6) !important;
+        transform: translateY(-1px) scale(1.02) !important;
+      }
+
+      /* G. THE DOME BIOSPHERE CONTROL PANEL (Settings Configuration) */
+      .solarpunk.view-settings .card-base {
+        border-radius: 36px !important;
+        background-image: 
+          radial-gradient(circle at 0% 0%, rgba(20, 184, 166, 0.06) 0%, transparent 40%),
+          radial-gradient(circle at 100% 100%, rgba(245, 158, 11, 0.04) 0%, transparent 40%) !important;
+      }
+      .solarpunk.view-settings h2, 
+      .solarpunk.view-settings h3 {
+        border-bottom: 2.5px solid rgba(20, 184, 166, 0.2) !important;
+        padding-bottom: 8px !important;
+      }
+
+      /* Custom Leaf-like Scrollbars for Solarpunk Theme */
+      .solarpunk ::-webkit-scrollbar {
+        width: 6px !important;
+        height: 6px !important;
+      }
+      .solarpunk ::-webkit-scrollbar-track {
+        background: rgba(20, 184, 166, 0.02) !important;
+        border-radius: 10px !important;
+      }
+      .solarpunk ::-webkit-scrollbar-thumb {
+        background: rgba(20, 184, 166, 0.2) !important;
+        border-radius: 10px !important;
+        transition: background 0.3s ease !important;
+      }
+      .solarpunk ::-webkit-scrollbar-thumb:hover {
+        background: rgba(20, 184, 166, 0.45) !important;
+      }
+
+      /* Glowing Pathway Connector subtle pulsing animations */
+      @keyframes pathway-glowing-pulse {
+        0%, 100% {
+          transform: translate(-50%, 0) scale(1.0);
+          box-shadow: 0 0 6px rgba(99, 102, 241, 0.4), 0 0 12px rgba(99, 102, 241, 0.2);
+          border-color: rgba(99, 102, 241, 0.4);
+        }
+        50% {
+          transform: translate(-50%, 0) scale(1.15);
+          box-shadow: 0 0 16px rgba(236, 72, 153, 0.95), 0 0 24px rgba(99, 102, 241, 0.6);
+          border-color: rgba(236, 72, 153, 0.85);
+        }
+      }
+
+      @keyframes pathway-glowing-glow {
+        0%, 100% {
+          opacity: 0.85;
+          box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+        }
+        50% {
+          opacity: 1.0;
+          box-shadow: 0 0 18px rgba(236, 72, 153, 0.9), 0 0 8px rgba(139, 92, 246, 0.7);
+        }
+      }
+
+      /* Connectors inside view-roadmap card bases */
+      .view-roadmap .card-base .path-connector {
+        animation: pathway-glowing-pulse 2.5s infinite ease-in-out !important;
+      }
+
+      /* Also add general styling support for progressive connecting links and lines under view-roadmap */
+      .view-roadmap .card-base {
+        position: relative;
+        transition: border-color 0.4s ease, box-shadow 0.4s ease !important;
+      }
+      .view-roadmap .card-base:hover {
+        border-color: rgba(139, 92, 246, 0.5) !important;
+        box-shadow: 0 12px 28px -8px rgba(139, 92, 246, 0.22) !important;
       }
     </style>
   <script type="importmap">
@@ -93,9 +1681,11 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200">
+  <body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

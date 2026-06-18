@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { SkillGapAnalysis, SkillProficiency } from '../types';
 import { analyzeSkillGap, getSkillAdvice } from '../services/gemini';
-import { Loader2, Plus, X, Zap, TrendingUp, Lightbulb, Target, CheckCircle2 } from 'lucide-react';
+import { Loader2, Plus, X, Zap, TrendingUp, Lightbulb, Target, CheckCircle2, Trophy } from 'lucide-react';
+import { RPGSkillTree } from './RPGSkillTree';
+import { SkillHeatmap } from './SkillHeatmap';
 
 interface SkillGapProps {
   onComplete: (result: SkillGapAnalysis) => void;
@@ -12,7 +14,7 @@ interface SkillGapProps {
 }
 
 export const SkillGapTool: React.FC<SkillGapProps> = ({ onComplete, onUpdateTracker, existingResult, existingTracker }) => {
-  const [activeTab, setActiveTab] = useState<'gap' | 'tracker'>('gap');
+  const [activeTab, setActiveTab] = useState<'gap' | 'tracker' | 'rpg'>('gap');
   
   // Gap Analysis State
   const [currentSkills, setCurrentSkills] = useState<string[]>([]);
@@ -28,16 +30,29 @@ export const SkillGapTool: React.FC<SkillGapProps> = ({ onComplete, onUpdateTrac
   // Initialize tracker with skills from analysis if empty
   useEffect(() => {
     if (result && trackedSkills.length === 0) {
-      const initialSkills: SkillProficiency[] = [
-        ...(result.missingSkills || []),
-        ...(result.masteredSkills || [])
-      ].map(skill => ({
-        skill,
-        level: 20, // Default start level
-        targetLevel: 80,
-        advice: '',
-        lastUpdated: new Date().toISOString()
-      }));
+      let initialSkills: SkillProficiency[] = [];
+      
+      if (result.skillsData && result.skillsData.length > 0) {
+          initialSkills = result.skillsData.map(sd => ({
+              skill: sd.skill,
+              level: sd.currentLevel,
+              targetLevel: sd.targetLevel,
+              advice: '',
+              lastUpdated: new Date().toISOString()
+          }));
+      } else {
+          initialSkills = [
+            ...(result.missingSkills || []),
+            ...(result.masteredSkills || [])
+          ].map(skill => ({
+            skill,
+            level: 20, // Default start level
+            targetLevel: 80,
+            advice: '',
+            lastUpdated: new Date().toISOString()
+          }));
+      }
+      
       setTrackedSkills(initialSkills);
       onUpdateTracker(initialSkills);
     }
@@ -102,7 +117,9 @@ export const SkillGapTool: React.FC<SkillGapProps> = ({ onComplete, onUpdateTrac
 
   const headerGradient = activeTab === 'gap' 
     ? 'from-blue-600 to-indigo-600 shadow-blue-200' 
-    : 'from-emerald-600 to-teal-600 shadow-emerald-200';
+    : activeTab === 'tracker'
+      ? 'from-emerald-600 to-teal-600 shadow-emerald-200'
+      : 'from-slate-900 to-slate-950 border border-slate-800 shadow-xl';
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto pb-20 md:pb-8">
@@ -110,26 +127,37 @@ export const SkillGapTool: React.FC<SkillGapProps> = ({ onComplete, onUpdateTrac
       <div className={`mb-8 bg-gradient-to-r ${headerGradient} p-8 rounded-3xl text-white shadow-xl dark:shadow-none flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500`}>
         <div>
            <h2 className="text-3xl font-bold font-brand flex items-center">
-               {activeTab === 'gap' ? <Target className="w-8 h-8 mr-3 text-white/90" /> : <TrendingUp className="w-8 h-8 mr-3 text-white/90" />}
+               {activeTab === 'gap' ? <Target className="w-8 h-8 mr-3 text-white/90" /> : activeTab === 'tracker' ? <TrendingUp className="w-8 h-8 mr-3 text-white/90" /> : <Trophy className="w-8 h-8 mr-3 text-cyan-400" />}
                Skill Center
            </h2>
            <p className="text-white/90 mt-2 text-lg">
-               {activeTab === 'gap' ? "Benchmark your skills against your target role." : "Track your learning progress and growth over time."}
+               {activeTab === 'gap' ? "Benchmark your skills against your target role." : activeTab === 'tracker' ? "Track your learning progress and growth over time." : "Engage with the interactive technology talent tree."}
            </p>
         </div>
-        <div className="bg-white/20 backdrop-blur-md p-1 rounded-xl flex self-start md:self-auto border border-white/20">
+        <div className="w-full md:w-auto overflow-x-auto no-scrollbar flex flex-row items-center gap-1.5 p-1.5 bg-white/15 dark:bg-black/30 backdrop-blur-lg border border-white/20 rounded-2xl shrink-0">
+            <style>{`
+              .no-scrollbar::-webkit-scrollbar { display: none !important; }
+              .no-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+            `}</style>
             <button 
                 onClick={() => setActiveTab('gap')}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'gap' ? 'bg-white text-blue-600 shadow-md' : 'text-white hover:bg-white/10'}`}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${activeTab === 'gap' ? 'bg-white text-blue-600 shadow-md' : 'text-white hover:bg-white/10'}`}
             >
                 Gap Analysis
             </button>
             <button 
                 onClick={() => setActiveTab('tracker')}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center ${activeTab === 'tracker' ? 'bg-white text-emerald-600 shadow-md' : 'text-white hover:bg-white/10'}`}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center whitespace-nowrap flex-shrink-0 ${activeTab === 'tracker' ? 'bg-white text-emerald-600 shadow-md' : 'text-white hover:bg-white/10'}`}
             >
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Tracker
+            </button>
+            <button 
+                onClick={() => setActiveTab('rpg')}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center whitespace-nowrap flex-shrink-0 ${activeTab === 'rpg' ? 'bg-slate-900 text-cyan-400 border border-cyan-500/30' : 'text-white/90 hover:bg-white/10'}`}
+            >
+                <Trophy className="w-4 h-4 mr-2" />
+                RPG Skill Tree
             </button>
         </div>
       </div>
@@ -193,25 +221,46 @@ export const SkillGapTool: React.FC<SkillGapProps> = ({ onComplete, onUpdateTrac
 
                   {result && (
                   <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 w-full text-left flex items-center">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 w-full text-left flex items-center">
                           Match Score
                           <span className="ml-auto text-3xl text-indigo-600 dark:text-indigo-400">{result.matchScore}%</span>
                       </h3>
-                      <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" opacity={0.5} />
-                          <XAxis type="number" domain={[0, 100]} hide />
-                          <YAxis dataKey="name" type="category" width={80} tick={{ fill: '#6b7280', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                          <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff', borderRadius: '12px' }} />
-                          <Bar dataKey="score" radius={[0, 8, 8, 0]} barSize={40}>
-                              {chartData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={index === 0 ? '#4f46e5' : '#f3f4f6'} />
-                              ))}
-                          </Bar>
-                          </BarChart>
-                      </ResponsiveContainer>
-                      </div>
+                      
+                      {result.skillsData && result.skillsData.length > 0 ? (
+                          <div className="h-72 w-full mt-4">
+                              <ResponsiveContainer width="100%" height="100%">
+                                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={result.skillsData}>
+                                      <PolarGrid stroke="#4b5563" strokeDasharray="3 3" />
+                                      <PolarAngleAxis dataKey="skill" tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 600 }} />
+                                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                      <Radar name="Target Level" dataKey="targetLevel" stroke="#10b981" fill="#10b981" fillOpacity={0.15} />
+                                      <Radar name="Current Level" dataKey="currentLevel" stroke="#6366f1" fill="#6366f1" fillOpacity={0.6} />
+                                      <Tooltip 
+                                          contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                                          itemStyle={{ fontWeight: 'bold' }}
+                                      />
+                                      <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                                  </RadarChart>
+                              </ResponsiveContainer>
+                          </div>
+                      ) : (
+                          <div className="h-64 w-full mt-6">
+                              <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 5 }}>
+                                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" opacity={0.5} />
+                                  <XAxis type="number" domain={[0, 100]} hide />
+                                  <YAxis dataKey="name" type="category" width={80} tick={{ fill: '#6b7280', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff', borderRadius: '12px' }} />
+                                  <Bar dataKey="score" radius={[0, 8, 8, 0]} barSize={40}>
+                                      {chartData.map((entry, index) => (
+                                          <Cell key={`cell-${index}`} fill={index === 0 ? '#4f46e5' : '#f3f4f6'} />
+                                      ))}
+                                  </Bar>
+                                  </BarChart>
+                              </ResponsiveContainer>
+                          </div>
+                      )}
+                      
                       <p className="text-center text-gray-500 dark:text-gray-400 mt-6 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl text-sm">
                           You are a <strong className="text-indigo-600 dark:text-indigo-400">{result.matchScore}% match</strong> for this role based on the skills provided.
                       </p>
@@ -260,7 +309,7 @@ export const SkillGapTool: React.FC<SkillGapProps> = ({ onComplete, onUpdateTrac
                   </div>
               )}
           </div>
-        ) : (
+        ) : activeTab === 'tracker' ? (
           <div className="space-y-6 animate-slide-right duration-300">
               {trackedSkills.length === 0 ? (
                   <div className="text-center p-16 bg-white dark:bg-gray-800 rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700">
@@ -269,8 +318,12 @@ export const SkillGapTool: React.FC<SkillGapProps> = ({ onComplete, onUpdateTrac
                       <p className="text-gray-500 dark:text-gray-400">Run a gap analysis first or manually add skills to start tracking proficiency.</p>
                   </div>
               ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {trackedSkills.map((skill, index) => (
+                  <>
+                      {/* Interactive Skill Intensity Heatmap */}
+                      <SkillHeatmap trackedSkills={trackedSkills} />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {trackedSkills.map((skill, index) => (
                           <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                               <div className="flex justify-between items-center mb-6">
                                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">{skill.skill}</h3>
@@ -329,7 +382,12 @@ export const SkillGapTool: React.FC<SkillGapProps> = ({ onComplete, onUpdateTrac
                           </div>
                       ))}
                   </div>
+                  </>
               )}
+          </div>
+        ) : (
+          <div className="space-y-6 animate-slide-right duration-300">
+            <RPGSkillTree />
           </div>
         )}
       </div>
